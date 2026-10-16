@@ -49,3 +49,13 @@ Generation, output duration, downloads, and application flows were verified. Spe
 - Three backend regression tests passed: default/null seed returns valid WAV with the expected generation settings; seeds 0 and 42 repeat the fake model's random output; invalid seeds return HTTP 400 and release the lock. Tests use real audio encoding and PyTorch with a model stub matching the pinned call signature.
 - Restarted the local Python service and loaded cached original VoxCPM2 weights. Actual HTTP generation with seed 42 returned a 3.36-second 48 kHz WAV; a null seed returned a 1.60-second 48 kHz WAV. Both responses were HTTP 200 with finite, non-silent audio.
 - These checks validate generation and API compatibility; speaker similarity, pronunciation, and identical results across different hardware are not assessed.
+
+## Long-script generation and WAV merging — 2026-10-16
+
+- Added a shared parts queue for browser and Python generation, with a script preview count, current-part elapsed time, completed-part progress, individual audio players/downloads, stop-after-current and in-page continuation, and completed-part persistence.
+- Seven parts tests passed: English/paragraph splitting, Khmer grapheme boundaries and emoji preservation, exact PCM sample order/duration after merging, sequential processing/persistence, stop/continue, failure/retry preserving earlier audio, and browser adapter request/state behavior. Existing recorder tests also passed (15 Node tests including the recorder parent).
+- Real browser UI + Python VoxCPM2 test: generated two paragraphs, stopped after part 1 (2.40s), merged the partial run, continued only part 2 (3.68s), and merged both. The downloaded WAV was mono PCM16 at 48 kHz and 6.08s; the individual part download was 2.40s.
+- Reloaded the page and reopened the saved run from Audio library; both individual players/downloads and the merged output remained available. The original Khmer draft was restored after QA.
+- Desktop 1280px and mobile 390px layout checks passed without horizontal document overflow. Fixed the writing grid's intrinsic width so audio players/waveform cannot widen the mobile editor. No browser console errors were reported.
+- Docker image rebuilt and container asset/health/MIME/range checks passed with the new script included. GPU browser inference itself was not rerun for this feature; its adapter/queue integration was checked with a stub. Real synthesis for this feature was exercised using Python.
+- Continuing unfinished parts requires the original page to remain open (voice/settings snapshots stay in memory); completed audio survives reload. Stop waits for the current inference request to finish.

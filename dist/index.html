@@ -34,15 +34,23 @@
             <div class="editor-body"><label class="sr-only" for="script">Your script</label><textarea id="script" maxlength="5000" placeholder="Start with a thought, a story, or a simple hello…"></textarea></div>
             <div class="sample-area"><span>Try a sample</span><div class="sample-buttons"><button data-sample="khmer">ភាសាខ្មែរ</button><button data-sample="welcome">A warm welcome</button><button data-sample="story">A short story</button></div></div>
             <div class="editor-footer"><span id="charCount">0 / 5,000 characters</span><span class="draft-note"><i></i><span id="draftStatus">Auto-saved locally</span></span></div>
-            <div class="generate-bar"><span class="generation-note"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 5-8 9-8 9s-8-4-8-9V6z M8 12l3 3 5-6"/></svg>WAV audio · 48 kHz</span><div class="generation-actions"><button id="cancelGeneration" class="secondary" hidden>Cancel generation</button><button class="primary" id="generate">Generate speech <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14 M13 6l6 6-6 6"/></svg></button></div></div>
+            <p class="split-hint" id="splitHint"></p><div class="generate-bar"><span class="generation-note"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 5-8 9-8 9s-8-4-8-9V6z M8 12l3 3 5-6"/></svg>WAV audio · 48 kHz</span><div class="generation-actions"><button id="cancelGeneration" class="secondary" hidden>Stop after this part</button><button class="primary" id="generate">Generate speech <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14 M13 6l6 6-6 6"/></svg></button></div></div>
           </div>
+          <section class="parts-panel panel" id="partsPanel" hidden aria-labelledby="partsTitle">
+            <div class="parts-heading"><div><span class="eyebrow">SCRIPT TO AUDIO</span><h2 id="partsTitle">Your audio, part by part.</h2></div><span class="badge" id="partsCount"></span></div>
+            <p id="partsStatus" role="status" aria-live="polite"></p>
+            <progress id="partsProgress" value="0" max="1" aria-label="Completed speech parts"></progress>
+            <p class="parts-detail" id="partsDetail"></p>
+            <div class="parts-actions"><button id="mergeParts" class="secondary" disabled>Merge completed parts</button><button id="continueParts" class="text-button" hidden>Continue remaining parts</button></div>
+            <ol class="parts-list" id="partsList"></ol>
+          </section>
           <div class="device-card panel" id="deviceCard">
             <div class="engine-card-top"><span class="engine-icon"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h10v10H7z M9 2v5 M15 2v5 M9 17v5 M15 17v5 M2 9h5 M2 15h5 M17 9h5 M17 15h5"/></svg></span><div><h3>Local voice engine</h3><span class="engine-subtitle">Download once. Create on your own device.</span></div><button class="model-setup secondary" id="studioLoadModel">Set up · 1.9 GB</button></div>
             <p id="modelMessage" class="model-message">Downloads once, then stays saved in your browser.</p>
             <div id="modelProgressWrap" hidden><progress aria-label="Model setup progress" id="modelProgress" max="100" value="0"></progress><div class="download-detail"><span id="modelProgressText">Starting…</span><span id="modelPercent"></span></div></div><button class="text-button" id="cancelModel" hidden>Cancel download</button>
             <details class="engine-details"><summary>Device details <span>⌄</span></summary><div id="deviceCheck" class="device-check">Checking your device…</div><p>VoxCPM2 · 4-bit · WebGPU. Model files use 1.94 GB. Clearing site data removes the saved model.</p><button class="text-button" id="modelSettings">Engine settings ↗</button></details>
           </div>
-          <div class="result panel" id="result" hidden><div class="result-heading"><div><span class="eyebrow">LATEST GENERATION</span><h2>Your audio is ready.</h2></div><span class="badge">AI-generated</span></div><div id="waveform" class="waveform"></div><audio id="player" controls aria-label="Generated audio"></audio><div class="result-actions"><a id="downloadWav" class="secondary" download="bek-speech.wav">↓ Download WAV</a><button id="downloadSrt" class="text-button">Download SRT</button><span>Estimated subtitle timing</span></div></div>
+          <div class="result panel" id="result" hidden><div class="result-heading"><div><span class="eyebrow">LATEST GENERATION</span><h2 id="resultTitle">Your audio is ready.</h2></div><span class="badge">AI-generated</span></div><div id="waveform" class="waveform"></div><audio id="player" controls aria-label="Generated audio"></audio><div class="result-actions"><a id="downloadWav" class="secondary" download="bek-speech.wav">↓ Download WAV</a><button id="downloadSrt" class="text-button">Download SRT</button><span>Estimated subtitle timing</span></div></div>
         </div>
         <aside class="voice-panel panel" aria-label="Voice settings">
           <div class="settings-heading"><h2>Voice settings</h2><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3z M5 11v1a7 7 0 0 0 14 0v-1 M12 19v3 M8 22h8"/></svg></div>
@@ -62,6 +70,6 @@
   </main>
 </div>
 <div class="toast" id="toast" role="status" hidden></div>
-<script src="browser-engine.js"></script><script src="voice-recorder.js"></script><script src="app.js"></script>
+<script src="browser-engine.js"></script><script src="voice-recorder.js"></script><script src="speech-parts.js"></script><script src="app.js"></script>
 </body>
 </html>

@@ -106,6 +106,16 @@ Click **Stop**, listen to the preview, then click **Use recording**. Give the vo
 - HTTPS is required on remote deployments; localhost HTTP works for local use. If access is denied, update the site's microphone permission in your browser or upload a WAV instead.
 - The reading passage is a prompt for the speaker, not an assumed transcript; cloning does not require reading it word for word.
 
+## Long scripts and audio parts
+
+Scripts split automatically into short parts (up to about 200 characters), preferring paragraphs, sentences, and word boundaries. Khmer character clusters stay together. The same queue works with the browser and Python engines.
+
+- Watch the current part, elapsed time, and completed-part count while generation runs.
+- Play or download each finished part immediately, without waiting for the full script.
+- **Stop after this part** finishes the current request and keeps completed audio. **Continue remaining parts** resumes the current run while the page stays open, using the original voice and settings.
+- **Merge all parts** joins finished WAV audio in script order without re-generating or re-encoding samples. A stopped run can merge just its completed parts.
+- Parts are saved in the audio library as they finish. Reopen a saved run to play/download its parts or merge them. Reloading preserves finished audio; continuing unfinished generation requires keeping the original page open.
+
 ## Optional Python engine
 
 The original Python model remains available under **Settings → Run speech on → Local Python service**. Install Python 3.10–3.12, then run:
@@ -141,7 +151,8 @@ node --check dist/app.js
 node --check dist/browser-engine.js
 node --check dist/browser-engine.worker.js
 node --check dist/voice-recorder.js
-node --test scripts/test-voice-recorder.cjs
+node --check dist/speech-parts.js
+node --test scripts/test-voice-recorder.cjs scripts/test-speech-parts.cjs
 python3 -m py_compile local/server.py
 ```
 

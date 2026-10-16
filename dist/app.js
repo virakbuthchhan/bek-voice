@@ -1,6 +1,7 @@
 let voiceRecorder=null,referenceUrl=null,recordedUrl=null,shownRecording=null;
 const $=s=>document.querySelector(s); const $$=s=>[...document.querySelectorAll(s)];
 let mode='tts', style='A warm, gentle young woman speaking naturally', reference=null, engine={state:'offline'}, busy=false, current=null, db;
+let activeBatch=null,viewBatch=null,runOptions=null,stopRequested=false,partUrls=[];
 let engineChoice=localStorage.getItem('sori-engine')||'browser';
 const browserEngine=new BrowserVoiceEngine(renderEngine);
 const localHost=['127.0.0.1','localhost'].includes(location.hostname), API=localHost?location.origin:null;
@@ -8,7 +9,7 @@ const samples={story:'At the edge of a quiet village, where the rice fields met 
 function toast(msg){$('#toast').textContent=msg;$('#toast').hidden=false;clearTimeout(toast.timer);toast.timer=setTimeout(()=>$('#toast').hidden=true,5500)}
 function page(name){if(name!=='studio'&&voiceRecorder?.isBusy)voiceRecorder.cancel();$$('.page').forEach(el=>el.hidden=el.id!==name);$$('.nav').forEach(el=>{const active=el.dataset.page===name;el.classList.toggle('active',active);if(active)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current');});$('#crumb').textContent=({studio:'Studio',voices:'My voices',history:'Audio library',settings:'Settings'})[name];location.hash=name;window.scrollTo(0,0);if(name==='settings')checkEngine()}
 $$('[data-page]').forEach(el=>el.onclick=()=>page(el.dataset.page)); $('.brand').onclick=()=>page('studio');$('#engineOpen').onclick=()=>page('settings');$('#help').onclick=()=>{page('settings');toast('Set up your local engine once, then create speech right here on your device.')};
-function updateText(){const n=$('#script').value.length;$('#charCount').textContent=`${n.toLocaleString()} / 5,000 characters`;try{localStorage.setItem('sori-draft',$('#script').value);$('#draftStatus').textContent='Auto-saved locally'}catch{$('#draftStatus').textContent='Local saving unavailable'} }
+function updateText(){const n=$('#script').value.length;$('#charCount').textContent=`${n.toLocaleString()} / 5,000 characters`;const count=SpeechParts.splitText($('#script').value).length;$('#splitHint').textContent=count>1?`This script will generate as ${count} short parts. Listen as they finish, then merge into one WAV.`:'Long scripts split automatically. Listen to each part or merge them when ready.';try{localStorage.setItem('sori-draft',$('#script').value);$('#draftStatus').textContent='Auto-saved locally'}catch{$('#draftStatus').textContent='Local saving unavailable'} }
 $('#script').oninput=updateText;$('#resetText').onclick=()=>{$('#script').value='';updateText()};$$('[data-sample]').forEach(el=>el.onclick=()=>{$('#script').value=samples[el.dataset.sample];updateText();$('#script').focus()});$('#textFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;const t=await f.text();$('#script').value=t.slice(0,5000);updateText();if(t.length>5000)toast('Imported the first 5,000 characters.')};
 $$('.mode').forEach(el=>el.onclick=()=>setMode(el.dataset.mode));function setMode(m){if(m!=='clone'&&voiceRecorder?.isBusy)voiceRecorder.cancel();mode=m;document.body.dataset.mode=m;$$('.mode').forEach(el=>{el.classList.toggle('active',el.dataset.mode===m);el.setAttribute('aria-pressed',el.dataset.mode===m)});$('#standardVoice').hidden=m==='clone';$('#cloneVoice').hidden=m!=='clone'}
 $$('.voice-choice').forEach(el=>el.onclick=()=>{style=el.dataset.style;$$('.voice-choice').forEach(e=>{e.classList.toggle('selected',e===el);e.setAttribute('aria-pressed',e===el)})});$('#guidance').oninput=()=>$('#guidanceValue').value=Number($('#guidance').value).toFixed(1);
@@ -66,7 +67,7 @@ async function put(store,row){await openDb;return new Promise((res,rej)=>{let tx
 $('#saveVoice').onclick=async()=>{if(!reference)return toast('Upload a WAV file or record and use a reference voice first.');if(!$('#consent').checked)return toast('Confirm you have permission to use this voice.');try{await put('voices',{...reference,id:crypto.randomUUID(),created:Date.now(),name:$('#voiceName').value.trim()||reference.name});await renderLibrary();toast('Voice saved on this device.')}catch{toast('Could not save the voice. Browser storage may be full.')}};
 function empty(parent,title,sub){const div=document.createElement('div');div.className='empty-state';const b=document.createElement('b');b.textContent=title;div.append(b,document.createTextNode(sub));parent.append(div)}
 function makeButton(text,cls,fn){const b=document.createElement('button');b.textContent=text;b.className=cls;b.onclick=fn;const label=({'▶':'Play audio','↓':'Download audio','↗':'Reuse script','×':'Remove audio'})[text];if(label){b.setAttribute('aria-label',label);b.title=label;}return b}
-async function renderLibrary(){try{const [voices,clips]=await Promise.all([all('voices'),all('clips')]);$('#voiceCount').textContent=voices.length;$('#historyCount').textContent=clips.length;const vl=$('#voiceLibrary');vl.replaceChildren();if(!voices.length)empty(vl,'Your voice belongs here.','Add a short reference clip to get started.');for(const v of voices){const card=document.createElement('article');card.className='panel voice-card';const h=document.createElement('h2');h.textContent=v.name;const sub=document.createElement('small');sub.textContent=`${v.duration.toFixed(1)} seconds · Stored locally`;card.append(h,sub,makeButton('Use this voice ↗','secondary',()=>{applyReference(v.blob,v.name,v.duration);page('studio');setMode('clone')}),makeButton('Remove','text-button',async()=>{await remove('voices',v.id);renderLibrary()}));vl.append(card)}for(const [selector,rows] of [['#recentList',clips.slice(0,3)],['#historyList',clips]]){const list=$(selector);list.replaceChildren();if(!rows.length)empty(list,'A quiet studio, for now.','Your generated audio will appear here.');for(const c of rows){const row=document.createElement('div');row.className='recent-item';const info=document.createElement('div');info.className='clip-info';const b=document.createElement('b');b.textContent=c.text;const small=document.createElement('small');small.textContent=`${c.mode==='clone'?'Cloned voice':'Voice design'} · ${new Date(c.created).toLocaleDateString()} · ${c.duration.toFixed(1)}s`;info.append(b,small);row.append(makeButton('▶','clip-play',()=>{page('studio');showResult(c);$('#result').scrollIntoView({behavior:'smooth'});$('#player').play().catch(()=>{})}),info,makeButton('↓','icon-button',()=>download(c.blob,'bek-speech.wav')),makeButton('↗','icon-button',()=>{$('#script').value=c.text;updateText();page('studio')}),makeButton('×','icon-button',async()=>{await remove('clips',c.id);renderLibrary()}));list.append(row)}}}catch{toast('Browser storage is unavailable. Downloads still work.')}}
+async function renderLibrary(){try{const [voices,clips]=await Promise.all([all('voices'),all('clips')]);$('#voiceCount').textContent=voices.length;$('#historyCount').textContent=clips.length;const vl=$('#voiceLibrary');vl.replaceChildren();if(!voices.length)empty(vl,'Your voice belongs here.','Add a short reference clip to get started.');for(const v of voices){const card=document.createElement('article');card.className='panel voice-card';const h=document.createElement('h2');h.textContent=v.name;const sub=document.createElement('small');sub.textContent=`${v.duration.toFixed(1)} seconds · Stored locally`;card.append(h,sub,makeButton('Use this voice ↗','secondary',()=>{applyReference(v.blob,v.name,v.duration);page('studio');setMode('clone')}),makeButton('Remove','text-button',async()=>{await remove('voices',v.id);renderLibrary()}));vl.append(card)}for(const [selector,rows] of [['#recentList',clips.slice(0,3)],['#historyList',clips]]){const list=$(selector);list.replaceChildren();if(!rows.length)empty(list,'A quiet studio, for now.','Your generated audio will appear here.');for(const c of rows){const row=document.createElement('div');row.className='recent-item';const info=document.createElement('div');info.className='clip-info';const b=document.createElement('b');b.textContent=c.text;const small=document.createElement('small');small.textContent=`${c.mode==='clone'?'Cloned voice':'Voice design'} · ${new Date(c.created).toLocaleDateString()} · ${c.duration.toFixed(1)}s${c.parts?' · '+c.parts.filter(p=>p.blob).length+'/'+c.parts.length+' parts':''}`;info.append(b,small);row.append(makeButton('▶','clip-play',()=>{page('studio');if(c.parts){showBatch(c);$('#partsPanel').scrollIntoView({behavior:'smooth'});}else{showResult(c);$('#result').scrollIntoView({behavior:'smooth'});$('#player').play().catch(()=>{});}}),info,makeButton('↓','icon-button',()=>{if(c.blob)download(c.blob,'bek-speech.wav');else{page('studio');showBatch(c);$('#partsPanel').scrollIntoView({behavior:'smooth'});toast('Download a part below, or merge completed parts.');}}),makeButton('↗','icon-button',()=>{$('#script').value=c.text;updateText();page('studio')}),makeButton('×','icon-button',async()=>{if(busy&&c.id===activeBatch?.id)return toast('Wait for generation to finish before removing it.');await remove('clips',c.id);renderLibrary()}));list.append(row)}}}catch{toast('Browser storage is unavailable. Downloads still work.')}}
 function renderEngine(){
   if(engineChoice!=='browser')return;
   engine={state:browserEngine.state};const b=browserEngine;document.body.dataset.engine=b.state;
@@ -89,6 +90,7 @@ async function checkEngine(){
   if(engineChoice==='browser'){renderEngine();return;}
   if(!API){engine={state:'offline'};$('#statusTop').textContent='Python service required';$('#engineDetail').textContent='Open the app through the included Python service.';return;}
   try{const res=await fetch(API+'/api/status',{signal:AbortSignal.timeout(3000)});engine=await res.json();$('#statusTop').textContent=({ready:'Python engine ready',loading:'Loading Python model…',idle:'Python service connected',error:'Model needs attention',busy:'Generating locally…'})[engine.state]||'Engine connected';$('.engine-status').classList.toggle('ready',engine.state==='ready');$('#engineDetail').textContent=engine.message||engine.state;$('#loadModel').disabled=['loading','ready','busy'].includes(engine.state);$('#loadModel').textContent=engine.state==='ready'?'✓ Python model loaded':engine.state==='loading'?'Loading model…':'↓ Load Python model · ≈5 GB';}catch{engine={state:'offline'};$('#statusTop').textContent='Python engine offline';$('#engineDetail').textContent='Run ./start-python.sh in the downloaded project.';}
+  renderRecording();
 }
 async function loadSelectedModel(){
   if(engineChoice==='browser'){try{await browserEngine.load();toast('Browser model ready. You can now generate speech.');}catch(e){if(e.code!=='CANCELLED')toast(e.message);}return;}
@@ -100,32 +102,81 @@ function applyEngineChoice(){const browserMode=engineChoice==='browser';$('#devi
 $('#engineChoice').onchange=()=>{if(busy||browserEngine.state==='loading'){toast('Cancel the current operation before switching engines.');$('#engineChoice').value=engineChoice;return;}engineChoice=$('#engineChoice').value;localStorage.setItem('sori-engine',engineChoice);applyEngineChoice();};
 $('#checkEngine').onclick=async()=>{if(engineChoice==='browser')await browserEngine.checkDevice();checkEngine();};
 $('#loadModel').onclick=loadSelectedModel;$('#studioLoadModel').onclick=loadSelectedModel;$('#modelSettings').onclick=()=>page('settings');
-$('#cancelModel').onclick=()=>browserEngine.cancel();$('#cancelGeneration').onclick=()=>browserEngine.cancel();
+$('#cancelModel').onclick=()=>browserEngine.cancel();$('#cancelGeneration').onclick=()=>{stopRequested=true;$('#cancelGeneration').disabled=true;$('#cancelGeneration').textContent='Stopping after this part…';renderParts();};
 applyEngineChoice();browserEngine.checkDevice();
 function base64(blob){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result.split(',')[1]);r.onerror=reject;r.readAsDataURL(blob)})}
-$('#generate').onclick=async()=>{
-  if(busy)return;if(voiceRecorder?.isBusy)return toast('Finish or cancel your recording first.');const text=$('#script').value.trim(),generationMode=mode;
-  if(!text)return toast('Add a script or try one of the samples.');
-  if(mode==='clone'&&(!reference||!$('#consent').checked))return toast('Add a reference voice and confirm permission to clone it.');
-  await checkEngine();if(engine.state!=='ready'){if(engineChoice==='browser'){$('#deviceCard').scrollIntoView({behavior:'smooth',block:'center'});toast('Set up or load the browser model first.');}else{page('settings');toast('Load the Python model first.');}return;}
-  busy=true;$('#generate').disabled=true;$('#cancelGeneration').hidden=engineChoice!=='browser';$('#generate').textContent='◌ Generating on your device…';
+function showBatch(batch){
+  viewBatch=activeBatch?.id===batch.id?activeBatch:batch;
+  partUrls.forEach(url=>URL.revokeObjectURL(url));partUrls=[];$('#partsList').replaceChildren();
+  $('#partsPanel').hidden=false;$('#result').hidden=true;$('#player').pause();
+  renderParts();
+  if(viewBatch.blob)showResult({...viewBatch,text:viewBatch.parts.filter(p=>p.blob).map(p=>p.text).join(' ')});
+}
+function renderParts(){
+  const batch=viewBatch;if(!batch)return;
+  const done=batch.parts.filter(p=>p.blob),running=batch.parts.find(p=>p.status==='running');
+  const isActive=busy&&activeBatch?.id===batch.id;
+  $('#partsCount').textContent=`${done.length} / ${batch.parts.length} ready`;
+  $('#partsProgress').max=batch.parts.length;$('#partsProgress').value=done.length;
+  $('#partsStatus').textContent=isActive?(stopRequested?'Finishing the current part, then stopping…':running?`Generating part ${batch.parts.indexOf(running)+1} of ${batch.parts.length}…`:'Preparing your voice…'):batch.status==='complete'?'All parts are ready. Listen below or merge into one WAV.':batch.status==='error'?`Generation paused: ${batch.error}`:'Stopped. Your completed parts are ready below.';
+  const elapsed=running?Math.floor((Date.now()-running.started)/1000):0;
+  $('#partsDetail').textContent=isActive?`${done.length} completed · ${running?elapsed+'s on this part · ':''}Each part becomes playable when it finishes.`:`${done.length} completed · ${batch.duration.toFixed(1)}s of audio · ${batch.storageWarning?'Download before leaving this page':'Saved on this device'}${done.length<batch.parts.length?' · Merge exports completed parts only.':'.'}`;
+  $('#mergeParts').disabled=busy||!done.length;$('#mergeParts').textContent=done.length===batch.parts.length?'Merge all parts':'Merge completed parts';
+  $('#continueParts').hidden=busy||activeBatch?.id!==batch.id||!runOptions||batch.status==='complete';
+  for(const [index,part] of batch.parts.entries()){
+    let row=$('#partsList').children[index];
+    if(!row){row=document.createElement('li');row.className='speech-part';const head=document.createElement('div');head.className='part-heading';const title=document.createElement('b');title.textContent=`Part ${index+1}`;const status=document.createElement('span');status.className='part-state';head.append(title,status);const details=document.createElement('details');const summary=document.createElement('summary');summary.textContent='View text';const text=document.createElement('p');text.textContent=part.text;details.append(summary,text);row.append(head,details);$('#partsList').append(row);}
+    row.dataset.status=part.status;row.querySelector('.part-state').textContent=part.blob?`Ready · ${part.duration.toFixed(1)}s`:part.status==='running'?`Generating · ${elapsed}s`:part.status==='error'?'Needs retry':'Waiting';
+    if(part.blob&&!row.querySelector('audio')){const url=URL.createObjectURL(part.blob);partUrls.push(url);const player=document.createElement('audio');player.controls=true;player.preload='none';player.src=url;player.setAttribute('aria-label',`Play part ${index+1}`);const link=document.createElement('a');link.className='text-button part-download';link.href=url;link.download=`bek-part-${String(index+1).padStart(2,'0')}.wav`;link.textContent='↓ Download part';row.append(player,link);}
+  }
+}
+setInterval(()=>{if(busy&&viewBatch?.id===activeBatch?.id)renderParts();},1000);
+async function saveBatch(batch){
+  if(!batch.parts.some(p=>p.blob))return;
+  try{await put('clips',batch);}catch{if(!batch.storageWarning){batch.storageWarning=true;toast('Browser storage is full. Download completed parts before leaving this page.');}}
+}
+async function startParts(batch,options){
+  if(busy)return;busy=true;stopRequested=false;activeBatch=batch;runOptions=options;
+  $('#generate').disabled=true;$('#generate').textContent='Preparing generation…';
   try{
-    const language=$('#language').value;const languageDirection=language==='auto'?'':'Speaking in '+$('#language').selectedOptions[0].textContent.split(' · ')[0];const directions=[mode==='tts'?style:'',languageDirection,$('#direction').value.trim()].filter(Boolean).join(', ');const seedValue=$('#seed').value;const seed=seedValue===''?undefined:Number(seedValue);
-    let blob;
-    if(engineChoice==='browser'){
-      let voice={kind:'design',description:directions};
-      if(mode==='clone'){const ctx=new AudioContext();const decoded=await ctx.decodeAudioData(await reference.blob.arrayBuffer());await ctx.close();const offline=new OfflineAudioContext(1,Math.ceil(decoded.duration*16000),16000);const source=offline.createBufferSource();source.buffer=decoded;source.connect(offline.destination);source.start();const resampled=await offline.startRendering();voice={kind:'clone',style:directions,reference:{pcm16k:resampled.getChannelData(0),transcript:''}};}
-      const pcm=await browserEngine.synthesize(text,voice,{cfg:Number($('#guidance').value),steps:Number($('#steps').value),...(seed!==undefined?{seed}:{})},message=>$('#generate').textContent='◌ '+message);blob=encodeWav(pcm,48000);
-    }else{
-      const body={text,style:directions,guidance:Number($('#guidance').value),steps:Number($('#steps').value),seed:seed??null,reference:mode==='clone'?await base64(reference.blob):null,consent:mode==='clone'?$('#consent').checked:false};
-      const res=await fetch(API+'/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});if(!res.ok){const err=await res.json();throw Error(err.error||'Generation failed');}blob=await res.blob();
+    await checkEngine();if(engine.state!=='ready')throw Error('Load the selected model first in Settings.');
+    delete batch.blob;delete batch.mergedParts;batch.status='running';showBatch(batch);$('#partsPanel').scrollIntoView({behavior:'smooth',block:'start'});
+    $('#cancelGeneration').hidden=false;$('#cancelGeneration').disabled=false;$('#cancelGeneration').textContent='Stop after this part';
+    let voice=options.voice;
+    if(options.engine==='browser'&&!voice){
+      voice={kind:'design',description:options.directions};
+      if(options.reference){let ctx;let decoded;try{ctx=new AudioContext();decoded=await ctx.decodeAudioData(await options.reference.arrayBuffer());}finally{await ctx?.close();}const offline=new OfflineAudioContext(1,Math.ceil(decoded.duration*16000),16000);const source=offline.createBufferSource();source.buffer=decoded;source.connect(offline.destination);source.start();const resampled=await offline.startRendering();voice={kind:'clone',style:options.directions,reference:{pcm16k:resampled.getChannelData(0),transcript:''}};}
+      options.voice=voice;
     }
-    const context=new AudioContext();const decoded=await context.decodeAudioData(await blob.arrayBuffer());const clip={id:crypto.randomUUID(),created:Date.now(),text,mode:generationMode,blob,duration:decoded.duration};await context.close();await showResult(clip);
-    try{await put('clips',clip);await renderLibrary();}catch{toast('Audio generated. Download it now; browser storage is full.');}
-    $('#result').scrollIntoView({behavior:'smooth',block:'center'});$('#player').play().catch(()=>{});
-  }catch(e){toast(e.message||'Generation failed. Check the selected engine.');}finally{busy=false;$('#generate').disabled=false;$('#cancelGeneration').hidden=true;$('#generate').innerHTML='Generate speech <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14 M13 6l6 6-6 6"/></svg>';checkEngine();}
+    if(options.engine==='python'&&options.reference&&!options.referenceBase64)options.referenceBase64=await base64(options.reference);
+    await SpeechParts.run(batch,async(text,index)=>{
+      $('#generate').textContent=`Generating part ${index+1} / ${batch.parts.length}…`;
+      if(options.engine==='browser')return encodeWav(await browserEngine.synthesize(text,voice,options.settings),48000);
+      const body={text,style:options.directions,guidance:options.settings.cfg,steps:options.settings.steps,seed:options.settings.seed??null,reference:options.referenceBase64||null,consent:options.consent};
+      const res=await fetch(API+'/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});if(!res.ok){const err=await res.json();throw Error(err.error||'Generation failed');}return res.blob();
+    },{update:()=>{if(viewBatch?.id===batch.id)renderParts();},save:saveBatch,shouldStop:()=>stopRequested});
+    if(batch.parts.length===1&&batch.parts[0].blob){batch.blob=batch.parts[0].blob;batch.mergedParts=1;await saveBatch(batch);if(viewBatch?.id===batch.id){await showResult({...batch,text:batch.parts[0].text});$('#player').play().catch(()=>{});}}
+    if(batch.status==='complete')toast(batch.parts.length>1?'All parts are ready. Listen individually or merge into one WAV.':'Your audio is ready.');
+  }catch(error){batch.status='error';batch.error=error.message;await saveBatch(batch);toast(error.message||'Generation failed. Completed parts are kept.');}
+  finally{busy=false;$('#generate').disabled=false;$('#cancelGeneration').hidden=true;$('#generate').textContent='Generate speech →';renderParts();await renderLibrary();await checkEngine();renderRecording();}
+}
+$('#generate').onclick=()=>{
+  if(busy)return;if(voiceRecorder?.isBusy)return toast('Finish or cancel your recording first.');
+  const text=$('#script').value.trim();if(!text)return toast('Add a script or try one of the samples.');if(text.length>5000)return toast('Keep the script within 5,000 characters.');
+  if(mode==='clone'&&(!reference||!$('#consent').checked))return toast('Add a reference voice and confirm permission to clone it.');
+  const language=$('#language').value;const languageDirection=language==='auto'?'':'Speaking in '+$('#language').selectedOptions[0].textContent.split(' · ')[0];
+  const directions=[mode==='tts'?style:'',languageDirection,$('#direction').value.trim()].filter(Boolean).join(', ');
+  const seedValue=$('#seed').value,seed=seedValue===''?undefined:Number(seedValue);if(seed!==undefined&&(!Number.isInteger(seed)||seed<0||seed>2147483647))return toast('Seed must be a nonnegative 32-bit integer.');
+  const batch={id:crypto.randomUUID(),created:Date.now(),text,mode,duration:0,status:'pending',parts:SpeechParts.splitText(text).map(text=>({text,status:'pending'}))};
+  startParts(batch,{engine:engineChoice,directions,settings:{cfg:Number($('#guidance').value),steps:Number($('#steps').value),...(seed!==undefined?{seed}:{})},reference:mode==='clone'?reference.blob:null,consent:mode==='clone'&&$('#consent').checked});
 };
-async function showResult(clip){current=clip;$('#result').hidden=false;if(showResult.url)URL.revokeObjectURL(showResult.url);showResult.url=URL.createObjectURL(clip.blob);$('#player').src=showResult.url;$('#downloadWav').href=showResult.url;try{const ctx=new AudioContext();const audio=await ctx.decodeAudioData(await clip.blob.arrayBuffer());const samples=audio.getChannelData(0),wave=$('#waveform');wave.replaceChildren();for(let n=0;n<100;n++){let peak=0;const start=Math.floor(n*samples.length/100),end=Math.floor((n+1)*samples.length/100);for(let i=start;i<end;i+=Math.max(1,Math.floor((end-start)/100)))peak=Math.max(peak,Math.abs(samples[i]));const el=document.createElement('i');el.style.height=Math.max(2,peak*65)+'px';wave.append(el)}await ctx.close()}catch{}}
+$('#continueParts').onclick=()=>{if(activeBatch&&runOptions)startParts(activeBatch,runOptions);};
+$('#mergeParts').onclick=async()=>{
+  const batch=viewBatch;if(!batch||busy)return;
+  const button=$('#mergeParts');button.disabled=true;button.textContent='Merging…';
+  try{const done=batch.parts.filter(p=>p.blob);const blob=await SpeechParts.mergeWavs(done.map(p=>p.blob));batch.blob=blob;batch.mergedParts=done.length;await saveBatch(batch);await showResult({...batch,text:done.map(p=>p.text).join(' ')});$('#result').scrollIntoView({behavior:'smooth',block:'center'});await renderLibrary();toast(`${done.length} parts merged in order. Your WAV is ready.`);}catch(error){toast(error.message);}finally{renderParts();}
+};
+async function showResult(clip){current=clip;$('#resultTitle').textContent=clip.parts?.length>1?'Your merged audio is ready.':'Your audio is ready.';$('#result').hidden=false;if(showResult.url)URL.revokeObjectURL(showResult.url);showResult.url=URL.createObjectURL(clip.blob);$('#player').src=showResult.url;$('#downloadWav').href=showResult.url;try{const ctx=new AudioContext();const audio=await ctx.decodeAudioData(await clip.blob.arrayBuffer());const samples=audio.getChannelData(0),wave=$('#waveform');wave.replaceChildren();for(let n=0;n<100;n++){let peak=0;const start=Math.floor(n*samples.length/100),end=Math.floor((n+1)*samples.length/100);for(let i=start;i<end;i+=Math.max(1,Math.floor((end-start)/100)))peak=Math.max(peak,Math.abs(samples[i]));const el=document.createElement('i');el.style.height=Math.max(2,peak*65)+'px';wave.append(el)}await ctx.close()}catch{}}
 function download(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
 function timecode(t){const ms=Math.round(t*1000);return `${String(Math.floor(ms/3600000)).padStart(2,'0')}:${String(Math.floor(ms/60000)%60).padStart(2,'0')}:${String(Math.floor(ms/1000)%60).padStart(2,'0')},${String(ms%1000).padStart(3,'0')}`}
 $('#downloadSrt').onclick=()=>{if(!current)return;const parts=current.text.match(/[^.!?។\n]+[.!?។]?/g)||[current.text];const total=parts.reduce((n,p)=>n+p.length,0);let elapsed=0;const srt=parts.map((p,i)=>{const start=elapsed;elapsed+=current.duration*p.length/total;return `${i+1}\n${timecode(start)} --> ${timecode(elapsed)}\n${p.trim()}\n`}).join('\n');download(new Blob([srt],{type:'text/plain;charset=utf-8'}),'bek-estimated.srt')};
