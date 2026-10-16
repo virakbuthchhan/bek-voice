@@ -1,0 +1,18 @@
+VoxCPM2 ONNX (WebGPU) conversion
+
+This repository contains a modified, converted derivative of the VoxCPM2 model.
+
+Original work: VoxCPM2, copyright OpenBMB / the VoxCPM Team (Tsinghua University),
+https://huggingface.co/openbmb/VoxCPM2 (revision 32279effe8c19989596f05d353d1447f51d9e915),
+https://github.com/OpenBMB/VoxCPM (commit cce58a5b).
+Licensed under the Apache License, Version 2.0 (see LICENSE).
+
+Changes made in this repository:
+- The PyTorch checkpoint was re-expressed as six ONNX graphs (feature encoder, base LM,
+  residual LM step, LocDiT step, AudioVAE encoder and decoder) for onnxruntime-web / WebGPU.
+- The transformer linear layers were quantized to 4-bit (MatMulNBits, block size 32) using
+  GPTQ calibration; the AudioVAE graphs are fp32; the token embedding table is stored as
+  a raw fp16 file.
+- The tokenizer files are unchanged copies of the upstream files.
+
+This repository is not endorsed by or affiliated with OpenBMB.

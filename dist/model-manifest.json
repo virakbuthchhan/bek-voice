@@ -1,0 +1,1900 @@
+{
+ "id": "voxcpm2-webgpu-q4f16",
+ "version": "32279eff-cce58a5",
+ "baseUrl": "https://huggingface.co/Uddom/voxcpm2-khmer-webgpu/resolve/main/",
+ "files": [
+  {
+   "name": "vae_encoder",
+   "path": "vae/vae_encoder.onnx",
+   "bytes": 54519,
+   "sha256": "e244e63f472e8423ab78bf2e548edbf93dcdd5be37069f3ea12aa2e60a43c05b",
+   "inputs": [
+    {
+     "name": "audio",
+     "dtype": "float",
+     "shape": [
+      1,
+      1,
+      "N"
+     ]
+    }
+   ],
+   "outputs": [
+    {
+     "name": "latents",
+     "dtype": "float",
+     "shape": [
+      1,
+      64,
+      "L"
+     ]
+    }
+   ],
+   "externalData": [
+    {
+     "path": "vae/vae_encoder.onnx.data",
+     "bytes": 192125952,
+     "sha256": "beb30a78f43254e2ea0e04aa8fc6383c4e7acb0c4bda9ac4e769c765e997ebca"
+    }
+   ]
+  },
+  {
+   "name": "feat_encoder",
+   "path": "q4f16/feat_encoder.onnx",
+   "bytes": 78697,
+   "sha256": "dd1d9b8915d4068e8022047025d68df4c8f117b3cf4abe71e7e56521f2030625",
+   "inputs": [
+    {
+     "name": "feat",
+     "dtype": "float",
+     "shape": [
+      1,
+      "T",
+      4,
+      64
+     ]
+    }
+   ],
+   "outputs": [
+    {
+     "name": "feat_embed",
+     "dtype": "float16",
+     "shape": [
+      1,
+      "T",
+      2048
+     ]
+    }
+   ],
+   "externalData": [
+    {
+     "path": "q4f16/feat_encoder.onnx.data",
+     "bytes": 121169920,
+     "sha256": "81fcb93d382807e459bb7e4f9ca6ae4c9266eaebf5e3438ba7908719fabdd8e8"
+    }
+   ]
+  },
+  {
+   "name": "base_lm",
+   "path": "q4f16/base_lm.onnx",
+   "bytes": 189973,
+   "sha256": "41fc45a49a516547bf9f75e5d1074755e33217f988f35ebc8376127beb2e342c",
+   "inputs": [
+    {
+     "name": "text_embeds",
+     "dtype": "float16",
+     "shape": [
+      1,
+      "q",
+      2048
+     ]
+    },
+    {
+     "name": "feat_embeds",
+     "dtype": "float16",
+     "shape": [
+      1,
+      "q",
+      2048
+     ]
+    },
+    {
+     "name": "audio_mask",
+     "dtype": "float16",
+     "shape": [
+      1,
+      "q",
+      1
+     ]
+    },
+    {
+     "name": "past_key_values.0.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.0.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.1.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.1.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.2.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.2.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.3.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.3.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.4.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.4.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.5.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.5.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.6.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.6.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.7.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.7.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.8.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.8.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.9.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.9.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.10.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.10.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.11.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.11.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.12.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.12.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.13.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.13.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.14.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.14.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.15.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.15.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.16.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.16.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.17.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.17.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.18.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.18.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.19.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.19.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.20.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.20.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.21.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.21.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.22.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.22.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.23.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.23.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.24.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.24.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.25.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.25.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.26.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.26.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.27.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.27.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    }
+   ],
+   "outputs": [
+    {
+     "name": "hidden",
+     "dtype": "float16",
+     "shape": [
+      1,
+      "q",
+      2048
+     ]
+    },
+    {
+     "name": "present.0.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.0.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.1.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.1.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.2.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.2.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.3.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.3.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.4.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.4.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.5.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.5.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.6.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.6.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.7.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.7.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.8.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.8.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.9.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.9.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.10.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.10.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.11.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.11.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.12.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.12.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.13.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.13.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.14.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.14.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.15.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.15.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.16.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.16.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.17.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.17.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.18.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.18.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.19.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.19.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.20.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.20.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.21.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.21.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.22.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.22.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.23.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.23.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.24.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.24.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.25.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.25.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.26.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.26.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.27.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.27.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    }
+   ],
+   "externalData": [
+    {
+     "path": "q4f16/base_lm.onnx.data",
+     "bytes": 747671616,
+     "sha256": "0edb00ddf1b2bbb4e5f01772d13d61ac9de50a1e612247eb568fb57e5fbec25f"
+    }
+   ]
+  },
+  {
+   "name": "residual_lm_step",
+   "path": "q4f16/residual_lm_step.onnx",
+   "bytes": 49663,
+   "sha256": "37ac4ca4264f848c599141bccac5bb9e93005b6c04e78d30547955929ec03bf9",
+   "inputs": [
+    {
+     "name": "base_hidden",
+     "dtype": "float16",
+     "shape": [
+      1,
+      "q",
+      2048
+     ]
+    },
+    {
+     "name": "feat_embeds",
+     "dtype": "float16",
+     "shape": [
+      1,
+      "q",
+      2048
+     ]
+    },
+    {
+     "name": "audio_mask",
+     "dtype": "float16",
+     "shape": [
+      1,
+      "q",
+      1
+     ]
+    },
+    {
+     "name": "past_key_values.0.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.0.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.1.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.1.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.2.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.2.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.3.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.3.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.4.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.4.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.5.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.5.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.6.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.6.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.7.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    },
+    {
+     "name": "past_key_values.7.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "P",
+      128
+     ]
+    }
+   ],
+   "outputs": [
+    {
+     "name": "dit_hidden",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2048
+     ]
+    },
+    {
+     "name": "stop_logits",
+     "dtype": "float",
+     "shape": [
+      1,
+      2
+     ]
+    },
+    {
+     "name": "present.0.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.0.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.1.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.1.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.2.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.2.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.3.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.3.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.4.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.4.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.5.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.5.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.6.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.6.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.7.key",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    },
+    {
+     "name": "present.7.value",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2,
+      "PQ",
+      128
+     ]
+    }
+   ],
+   "externalData": [
+    {
+     "path": "q4f16/residual_lm_step.onnx.data",
+     "bytes": 262846528,
+     "sha256": "da251614aea2852d2f735e1c076850dc2795bec889ddc1e6339d90bd96b5a103"
+    }
+   ]
+  },
+  {
+   "name": "locdit_step",
+   "path": "q4f16/locdit_step.onnx",
+   "bytes": 79436,
+   "sha256": "acf1b54fdaa621d952c4559c2e9803b313ebc01c7bab2d684a9f97631b30f9e3",
+   "inputs": [
+    {
+     "name": "x",
+     "dtype": "float",
+     "shape": [
+      1,
+      4,
+      64
+     ]
+    },
+    {
+     "name": "dit_hidden",
+     "dtype": "float16",
+     "shape": [
+      1,
+      2048
+     ]
+    },
+    {
+     "name": "cond",
+     "dtype": "float",
+     "shape": [
+      1,
+      4,
+      64
+     ]
+    },
+    {
+     "name": "t",
+     "dtype": "float",
+     "shape": []
+    },
+    {
+     "name": "dt",
+     "dtype": "float",
+     "shape": []
+    },
+    {
+     "name": "cfg",
+     "dtype": "float",
+     "shape": []
+    }
+   ],
+   "outputs": [
+    {
+     "name": "x_next",
+     "dtype": "float",
+     "shape": [
+      1,
+      4,
+      64
+     ]
+    }
+   ],
+   "externalData": [
+    {
+     "path": "q4f16/locdit_step.onnx.data",
+     "bytes": 125646336,
+     "sha256": "80e3efb95e5bca64447bfb8d39f02dbfe1add681e8d4b8307d3480b01f137f46"
+    }
+   ]
+  },
+  {
+   "name": "vae_decoder",
+   "path": "vae/vae_decoder.onnx",
+   "bytes": 88143,
+   "sha256": "c811e5ac730db230cb42b02ee0bee9acfef9e42c5a79a707e018fdd5980a7f94",
+   "inputs": [
+    {
+     "name": "latents",
+     "dtype": "float",
+     "shape": [
+      1,
+      64,
+      "L"
+     ]
+    }
+   ],
+   "outputs": [
+    {
+     "name": "audio",
+     "dtype": "float",
+     "shape": [
+      1,
+      1,
+      "S"
+     ]
+    }
+   ],
+   "externalData": [
+    {
+     "path": "vae/vae_decoder.onnx.data",
+     "bytes": 182955520,
+     "sha256": "45538228d2369bea0b818fb4f1a1bf47963f1e9229c6acd4defe86bd91679ba5"
+    }
+   ]
+  },
+  {
+   "name": "embed_tokens",
+   "path": "embed_tokens.f16.bin",
+   "bytes": 300843008,
+   "sha256": "e4321641ac7a837ba3be585c73cca686159724577abaa16f16926b636bb4549c"
+  }
+ ],
+ "tokenizer": "tokenizer.json",
+ "config": {
+  "hidden": 2048,
+  "vocab": 73448,
+  "baseLayers": 28,
+  "residualLayers": 8,
+  "kvHeads": 2,
+  "headDim": 128,
+  "maxPositions": 8192,
+  "actDtype": "float16",
+  "specialIds": {
+   "audioStart": 101,
+   "audioEnd": 102,
+   "refAudioStart": 103,
+   "refAudioEnd": 104
+  },
+  "minLen": 2,
+  "architecture": "voxcpm2",
+  "variant": "q4f16",
+  "activationDtype": "float16",
+  "quantization": {
+   "quant": {
+    "block_size": 32,
+    "symmetric": true,
+    "clip_search": true,
+    "gptq_dir": "D:\\voxcpm2-work\\out\\gptq-sym"
+   },
+   "quantGroups": [
+    "base_lm",
+    "feat_encoder",
+    "locdit",
+    "residual_lm"
+   ],
+   "vae": "f32"
+  },
+  "contractDoc": "docs/graph-contract.md",
+  "patchSize": 4,
+  "featDim": 64,
+  "samplesPerPatchIn16k": 2560,
+  "samplesPerPatchOut48k": 7680,
+  "inputSampleRate": 16000,
+  "outputSampleRate": 48000,
+  "latentFps": 25,
+  "baseLm": {
+   "layers": 28,
+   "hidden": 2048,
+   "heads": 16,
+   "kvHeads": 2,
+   "headDim": 128,
+   "vocab": 73448
+  },
+  "residualLm": {
+   "layers": 8,
+   "hidden": 2048,
+   "kvHeads": 2,
+   "headDim": 128,
+   "rope": false
+  },
+  "locEnc": {
+   "layers": 12,
+   "hidden": 1024
+  },
+  "locDit": {
+   "layers": 12,
+   "hidden": 1024,
+   "seqTokens": 11
+  },
+  "maxKvLength": 8192,
+  "prefillChunkTokens": 256,
+  "specialTokens": {
+   "audioStart": 101,
+   "audioEnd": 102,
+   "refAudioStart": 103,
+   "refAudioEnd": 104,
+   "spacePrefix": 59320,
+   "byteTokenBase": 1089,
+   "unk": 0,
+   "bos": 1,
+   "eos": 2
+  },
+  "tokenizer": {
+   "file": "tokenizer.json",
+   "addSpecialTokens": false,
+   "prependSpaceMarker": true,
+   "cjkSplit": true,
+   "note": "encode with add_special_tokens=false, append 101; see reference_loop.tokenize"
+  },
+  "embedding": {
+   "file": "embed_tokens.f16.bin",
+   "dtype": "float16",
+   "shape": [
+    73448,
+    2048
+   ],
+   "scale": 1.0,
+   "note": "row-major raw little-endian; JS-side lookup; zero rows at audio positions"
+  },
+  "kvNames": {
+   "past": "past_key_values.{i}.{key|value}",
+   "present": "present.{i}.{key|value}",
+   "baseLayers": 28,
+   "residualLayers": 8,
+   "shape": [
+    1,
+    2,
+    "P",
+    128
+   ]
+  },
+  "defaults": {
+   "steps": 10,
+   "cfg": 2.0,
+   "minLen": 2,
+   "temperature": 1.0,
+   "swayCoef": 1.0,
+   "zeroInitFraction": 0.04,
+   "streamCtxPatches": 3
+  },
+  "cfm": {
+   "solver": "euler",
+   "tSpan": "linspace(1,0,steps+1); t += sway*(cos(pi/2 t) - 1 + t)",
+   "zeroInitSteps": "max(1,int(0.04*(steps+1)))",
+   "cfgZeroStar": true,
+   "graph": "locdit_step"
+  },
+  "stop": {
+   "output": "stop_logits",
+   "rule": "i > minLen && logits[1] > logits[0]; the stopping patch is kept; tested BEFORE the LM step"
+  },
+  "maxPatchesRule": "source: min(int(6*targetTextTokens+10), 4096); apps should clamp tighter (spec section 9.7)",
+  "layouts": "docs/inference-spec.md section 2.4 (zero_shot, reference, continuation, ref_continuation)",
+  "vae": {
+   "encoderRates": [
+    2,
+    5,
+    8,
+    8
+   ],
+   "decoderRates": [
+    8,
+    6,
+    5,
+    2,
+    2,
+    2
+   ],
+   "srBucketBaked": 3,
+   "maxDecodeSecondsPerCall": 30
+  },
+  "maxTensorBytesForWebGpu": 134217728,
+  "externalDataSha256": {
+   "vae/vae_encoder.onnx.data": "beb30a78f43254e2ea0e04aa8fc6383c4e7acb0c4bda9ac4e769c765e997ebca",
+   "q4f16/feat_encoder.onnx.data": "81fcb93d382807e459bb7e4f9ca6ae4c9266eaebf5e3438ba7908719fabdd8e8",
+   "q4f16/base_lm.onnx.data": "0edb00ddf1b2bbb4e5f01772d13d61ac9de50a1e612247eb568fb57e5fbec25f",
+   "q4f16/residual_lm_step.onnx.data": "da251614aea2852d2f735e1c076850dc2795bec889ddc1e6339d90bd96b5a103",
+   "q4f16/locdit_step.onnx.data": "80e3efb95e5bca64447bfb8d39f02dbfe1add681e8d4b8307d3480b01f137f46",
+   "vae/vae_decoder.onnx.data": "45538228d2369bea0b818fb4f1a1bf47963f1e9229c6acd4defe86bd91679ba5"
+  },
+  "tokenizerBytes": 3676772,
+  "totalBytes": 1937476083
+ }
+}
