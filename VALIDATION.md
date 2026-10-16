@@ -59,3 +59,14 @@ Generation, output duration, downloads, and application flows were verified. Spe
 - Desktop 1280px and mobile 390px layout checks passed without horizontal document overflow. Fixed the writing grid's intrinsic width so audio players/waveform cannot widen the mobile editor. No browser console errors were reported.
 - Docker image rebuilt and container asset/health/MIME/range checks passed with the new script included. GPU browser inference itself was not rerun for this feature; its adapter/queue integration was checked with a stub. Real synthesis for this feature was exercised using Python.
 - Continuing unfinished parts requires the original page to remain open (voice/settings snapshots stay in memory); completed audio survives reload. Stop waits for the current inference request to finish.
+
+## Output choice and voice-settings clarity — 2026-10-16
+
+- Added persisted Full voice / Split voice radio options. Full voice sends the entire script in one request; Split voice retains the short-part queue. Output mode is frozen while generation runs and recorded on each saved run.
+- Each part now has its own accessible progress bar: empty while waiting, indeterminate/animated while generating, and full when complete. No invented within-request percentage is displayed because the inference API does not supply one.
+- Reorganized voice settings into voice choice, language, and optional delivery. AI/cloning selection now lives in this panel. Saved voices can be selected directly; choosing a sample hides the upload/record picker and shows its name, duration, player, and a change-sample action. Permission status is explicit. Saving a voice and advanced guidance/seed settings are collapsed.
+- Sixteen Node tests passed, including a Full voice plan preserving a long multi-paragraph script in one part versus Split voice creating multiple parts. Existing queue, merge, browser-adapter, and recorder checks remained green.
+- Actual browser + Python generation succeeded for Full voice (one request/part) and Split voice (two separately playable parts). Confirmed active bars omit the value attribute, waiting bars are zero, and completed bars are full with accessible status text.
+- Browser checks passed for saved-voice selection, permission reminder/ready state, changing a sample, and the recording sample UI. No microphone capture was started. Original draft and Split voice preference were restored after testing.
+- Desktop and mobile 390px AI/cloning/recording layouts had no horizontal overflow. Removed the mobile mode-dependent panel reorder so changing voice modes keeps the panel in the same place. No browser console errors were reported.
+- Rebuilt Docker and passed the deployment asset, health, MIME, and range smoke checks. Browser GPU inference was not repeated; this feature's real inference checks used Python.

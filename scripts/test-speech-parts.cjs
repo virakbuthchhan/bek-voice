@@ -48,3 +48,8 @@ test('browser adapter sends exactly one part per request and returns to ready',a
   await run(b,async text=>{const pcm=await engine.synthesize(text,voice,settings);return wav([...pcm].map(v=>v*32767));});
   assert.equal(requests.length,3);assert.deepEqual(requests.map(r=>r.payload.chunk.text),['first','second','third']);assert.ok(requests.every(r=>r.payload.voice===voice&&r.payload.settings===settings));assert.equal(engine.state,'ready');assert.equal(b.status,'complete');
 });
+
+test('Full voice preserves the complete script in one request; Split voice creates a queue',()=>{
+  const {plan}=require('../dist/speech-parts.js');const script=('Hello from our studio. ').repeat(30)+'\n\nសួស្តី!';
+  assert.deepEqual(plan(script,'full'),[script]);assert.ok(plan(script,'split').length>1);assert.deepEqual(plan('  ','full'),[]);assert.throws(()=>plan(script,'invalid'),/Choose/);
+});

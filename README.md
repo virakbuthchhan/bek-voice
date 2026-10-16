@@ -108,9 +108,11 @@ Click **Stop**, listen to the preview, then click **Use recording**. Give the vo
 
 ## Long scripts and audio parts
 
-Scripts split automatically into short parts (up to about 200 characters), preferring paragraphs, sentences, and word boundaries. Khmer character clusters stay together. The same queue works with the browser and Python engines.
+Choose **Full voice** for one generation request containing the whole script, or **Split voice** for short parts (up to about 200 characters). Split mode prefers paragraphs, sentences, and word boundaries; Khmer character clusters stay together. Both modes work with the browser and Python engines. Full mode can take longer before the first audio is available.
 
-- Watch the current part, elapsed time, and completed-part count while generation runs.
+Voice settings follow three steps: choose an AI voice or clone your own (saved voice, upload, or browser recording), select the script language, then optionally adjust delivery and quality. Voice saving and advanced guidance/seed controls are collapsed by default.
+
+- Watch the current part, elapsed time, and completed-part count while generation runs. Each part has a progress bar: animated while generating, full when ready, and empty while waiting. The engine does not expose a reliable percentage within a generation request, so no estimated percentage is shown.
 - Play or download each finished part immediately, without waiting for the full script.
 - **Stop after this part** finishes the current request and keeps completed audio. **Continue remaining parts** resumes the current run while the page stays open, using the original voice and settings.
 - **Merge all parts** joins finished WAV audio in script order without re-generating or re-encoding samples. A stopped run can merge just its completed parts.

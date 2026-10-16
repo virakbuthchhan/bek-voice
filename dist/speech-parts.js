@@ -29,6 +29,7 @@
     }
     return result;
   }
+  function plan(text,mode='split'){if(!['full','split'].includes(mode))throw Error('Choose Full voice or Split voice.');const clean=text.trim();return mode==='full'?(clean?[clean]:[]):splitText(text);}
   async function readWav(blob){
     const buffer=await blob.arrayBuffer(),view=new DataView(buffer);
     const tag=at=>String.fromCharCode(...new Uint8Array(buffer,at,4));
@@ -70,6 +71,6 @@
     finally{await save(batch);update();}
     return batch;
   }
-  const api={splitText,readWav,mergeWavs,run};
+  const api={plan,splitText,readWav,mergeWavs,run};
   if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.SpeechParts=api;
 })(globalThis);
