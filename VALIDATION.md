@@ -41,3 +41,11 @@ Generation, output duration, downloads, and application flows were verified. Spe
 - Checked cached-model loading to ready state, Khmer-first language selection, sample insertion and character count, fine-tuning disclosure, recording sample language switching, and Studio/Voices/Library/Settings navigation. Existing audio records remained visible.
 - Browser console reported no errors in the redesigned preview.
 - Recorder unit tests and the rebuilt Docker deployment asset smoke check passed. No synthesis backend or recorder capture algorithm changes were needed for this redesign.
+
+## Python engine seed compatibility — 2026-10-16
+
+- Confirmed installed/pinned VoxCPM 2.0.3 forwards `generate` keyword arguments to `_generate`, which does not accept `seed`.
+- Removed that unsupported keyword; explicit seeds now initialize Python, NumPy, and PyTorch RNGs under the generation lock.
+- Three backend regression tests passed: default/null seed returns valid WAV with the expected generation settings; seeds 0 and 42 repeat the fake model's random output; invalid seeds return HTTP 400 and release the lock. Tests use real audio encoding and PyTorch with a model stub matching the pinned call signature.
+- Restarted the local Python service and loaded cached original VoxCPM2 weights. Actual HTTP generation with seed 42 returned a 3.36-second 48 kHz WAV; a null seed returned a 1.60-second 48 kHz WAV. Both responses were HTTP 200 with finite, non-silent audio.
+- These checks validate generation and API compatibility; speaker similarity, pronunciation, and identical results across different hardware are not assessed.

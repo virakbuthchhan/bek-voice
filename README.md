@@ -145,6 +145,12 @@ node --test scripts/test-voice-recorder.cjs
 python3 -m py_compile local/server.py
 ```
 
+With the optional Python engine dependencies installed, run the backend regression checks (no model download needed):
+
+```sh
+.venv/bin/python scripts/test-python-engine.py
+```
+
 To check a running Docker deployment without downloading the model again:
 
 ```sh

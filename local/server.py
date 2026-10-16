@@ -95,7 +95,15 @@ class Handler(SimpleHTTPRequestHandler):
             direction = str(data.get('style', ''))[:500].replace('(', '').replace(')', '')
             target = f'({direction}){text}' if direction else text
             state.update(state='busy', message='Generating speech on your computer…')
-            wav = model.generate(text=target, reference_wav_path=reference_path, cfg_value=guidance, inference_timesteps=steps, seed=seed)
+            # VoxCPM 2.0.3 forwards kwargs to _generate, which has no seed argument.
+            # Seed the RNGs while holding the generation lock instead.
+            if seed is not None:
+                import random
+                import torch
+                random.seed(seed)
+                np.random.seed(seed)
+                torch.manual_seed(seed)
+            wav = model.generate(text=target, reference_wav_path=reference_path, cfg_value=guidance, inference_timesteps=steps)
             output = io.BytesIO()
             sf.write(output, wav, model.tts_model.sample_rate, format='WAV', subtype='PCM_16')
             self.respond(200, output.getvalue(), 'audio/wav')
