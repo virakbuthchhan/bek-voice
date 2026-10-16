@@ -32,3 +32,12 @@ Generation, output duration, downloads, and application flows were verified. Spe
 - A browser integration harness used an oscillator-backed MediaStream (no microphone hardware) with the real MediaRecorder and Web Audio APIs. Khmer/English sample switching, a 3.54-second recording, mono WAV conversion, preview, Use recording, and permission-checkbox reset passed.
 - The rebuilt Docker image passed the asset/health/MIME/range smoke check, including the new recorder script.
 - Physical microphone capture and OS permission dialogs were not exercised by the automated checks.
+
+## Bek interface redesign — 2026-10-16
+
+- Rebuilt the presentation layer with Bek branding, a compact navigation rail, an editor-first workspace, copper accents, and grouped voice controls.
+- Confirmed all existing functional control IDs remain present (only the decorative hero waveform was removed). Browser model cache and voice/audio storage namespaces remain unchanged.
+- Browser QA passed at desktop 1440 px and mobile 390 px widths; no horizontal document overflow was observed.
+- Checked cached-model loading to ready state, Khmer-first language selection, sample insertion and character count, fine-tuning disclosure, recording sample language switching, and Studio/Voices/Library/Settings navigation. Existing audio records remained visible.
+- Browser console reported no errors in the redesigned preview.
+- Recorder unit tests and the rebuilt Docker deployment asset smoke check passed. No synthesis backend or recorder capture algorithm changes were needed for this redesign.

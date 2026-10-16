@@ -1,4 +1,4 @@
-# Sori — Local voice studio
+# Bek — Local voice studio
 
 Text to speech, voice design, permission-based voice cloning, WAV export, estimated SRT, and browser-local voice/audio libraries.
 

@@ -16,7 +16,7 @@ def get(path, headers=None):
 status, headers, body = get('/healthz')
 assert status == 200 and body == b'ok\n', 'Health endpoint failed'
 status, headers, body = get('/')
-assert b'Sori' in body and b'browser-engine.js' in body, 'Wrong application root'
+assert b'Bek' in body and b'browser-engine.js' in body, 'Wrong application root'
 assert headers.get('X-Content-Type-Options') == 'nosniff', 'Missing content type protection'
 assert 'no-cache' in headers.get('Cache-Control', ''), 'Application updates may be stale'
 
