@@ -25,3 +25,10 @@ Generation, output duration, downloads, and application flows were verified. Spe
 - Caddy's production HTTPS configuration validated with a placeholder hostname. Reverse proxy behavior was tested using a loopback-only HTTP test override, with no public ports exposed.
 - Real public-domain ACME certificate issuance was not attempted; it requires a domain pointing to the target VPS and reachable ports 80/443.
 - No app assets or browser inference code changed for Docker support; browser speech tests above apply to the byte-identical files served by the image.
+
+## Browser voice recording — 2026-10-16
+
+- Node recorder tests passed, covering permission denial, cancellation during a pending permission request, 3-second minimum, microphone-track cleanup, 30-second auto-stop/trimming, silent/short rejection, cancellation during decoding, and discarding a take.
+- A browser integration harness used an oscillator-backed MediaStream (no microphone hardware) with the real MediaRecorder and Web Audio APIs. Khmer/English sample switching, a 3.54-second recording, mono WAV conversion, preview, Use recording, and permission-checkbox reset passed.
+- The rebuilt Docker image passed the asset/health/MIME/range smoke check, including the new recorder script.
+- Physical microphone capture and OS permission dialogs were not exercised by the automated checks.
