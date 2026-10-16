@@ -77,3 +77,11 @@ Generation, output duration, downloads, and application flows were verified. Spe
 - Browser checks passed for toggling both ways, Enter-key activation, light/dark persistence after reload, and returning to system mode. System mode resolved to dark on the test device. OS appearance was not changed during testing.
 - Reviewed dark editor/Khmer text, voice settings, Settings, saved audio parts, and native audio controls. Mobile header checks at 390px and 320px showed no horizontal document overflow. Browser console reported no errors.
 - Docker rebuild and asset/health/MIME/range smoke checks passed, including theme.js. JavaScript syntax and whitespace checks passed. Speech inference was unchanged and was not rerun for this visual feature.
+
+## In-app documentation — 2026-10-16
+
+- Added Documentation in the main navigation (Docs on mobile); the header help icon opens the guide. Nine bundled topics cover getting started, model/device requirements, cloning/recording, generation modes, exports/storage, Python, Docker, VPS deployment, and troubleshooting.
+- Added topic search with relevant excerpts, no-results feedback and Escape clearing, copy buttons for setup commands, and shareable #docs/topic routes. Updated routing to support topic deep links and browser back/forward without rendering the same programmatic navigation twice.
+- Browser checks passed for search (including seed troubleshooting), result selection, no results, command copying, reload on a Docker deep link, back navigation, Help → guide, guide → engine Settings, and guide → Studio. Clipboard contents were restored after the copy check.
+- Reviewed light and dark guide layouts. Navigation, the model comparison table, and VPS command examples fit mobile widths of 320px and 390px without horizontal document overflow. No browser console errors were reported during verification.
+- Docker image rebuilt and asset/health/MIME/range smoke checks passed, including docs.js. JavaScript syntax and whitespace checks passed. No speech inference changes were made or retested for this documentation update.

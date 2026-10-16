@@ -1,5 +1,5 @@
-const CACHE='sori-shell-v8';
-const SHELL=['./','index.html','style.css','theme.js','app.js','browser-engine.js','voice-recorder.js','speech-parts.js','browser-engine.worker.js','model-manifest.json'];
+const CACHE='sori-shell-v9';
+const SHELL=['./','index.html','style.css','theme.js','docs.js','app.js','browser-engine.js','voice-recorder.js','speech-parts.js','browser-engine.worker.js','model-manifest.json'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('sori-shell-')&&key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
 self.addEventListener('fetch',event=>{

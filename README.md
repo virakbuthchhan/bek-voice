@@ -2,6 +2,10 @@
 
 Text to speech, voice design, permission-based voice cloning, WAV export, estimated SRT, and browser-local voice/audio libraries.
 
+## In-app documentation
+
+Open **Documentation** in the sidebar (Docs on mobile), or click the help icon. The guide includes searchable topics, copyable setup commands, and direct links such as `#docs/python`, `#docs/docker`, and `#docs/troubleshooting`. It is bundled with the app and supports light/dark themes.
+
 ## Quick start with Docker Compose
 
 Install Docker Desktop on Windows/macOS, or Docker Engine and the Compose plugin on Linux. Clone using HTTPS (your friends do not need your SSH alias):
@@ -142,9 +146,9 @@ py -3.12 -m venv .venv
 
 ## Notes
 
-- Sophea and Dara are voice descriptions, not fixed speaker identities.
+- AI voice characters are voice descriptions, not fixed speaker identities.
 - Language is detected by the model; the language menu adds a speaking direction.
-- Long scripts are generated in smaller chunks in browser mode.
+- Full voice generates the whole script in one request; Split voice uses smaller chunks in either engine.
 - SRT timing is estimated proportionally by sentence, not forced alignment.
 - References and audio clips are saved in IndexedDB for this browser and origin. Download important audio before clearing site data.
 - Only clone voices you own or have permission to use. Label shared audio as AI-generated.
