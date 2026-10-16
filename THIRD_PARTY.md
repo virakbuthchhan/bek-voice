@@ -23,4 +23,4 @@ MIT license; see dist/vendor/onnxruntime-LICENSE.txt. Bundled JSPI and asyncify 
 
 ## Fonts
 
-DM Sans and Manrope from Google Fonts, SIL Open Font License. License files are in dist/fonts.
+Google Sans from Google Fonts (https://github.com/googlefonts/googlesans), SIL Open Font License. Font files are self-hosted under dist/fonts; the license is dist/fonts/googlesans-OFL.txt. Legacy DM Sans and Manrope assets and their licenses remain in dist/fonts.
