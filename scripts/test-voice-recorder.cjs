@@ -1,8 +1,6 @@
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
-const vm=require('node:vm');
-const fs=require('node:fs');
-vm.runInThisContext(fs.readFileSync(require('node:path').join(__dirname,'../dist/voice-recorder.js'),'utf8'));
+let VoiceRecorder;
 let now=0,tick;
 Object.defineProperty(globalThis,'isSecureContext',{value:true,configurable:true});
 Object.defineProperty(globalThis,'navigator',{value:{mediaDevices:{getUserMedia(){}}},configurable:true});
@@ -20,6 +18,7 @@ function buffer(seconds=4,silent=false){return {length:Math.round(seconds*16000)
 function recorder(options={}){return new VoiceRecorder({encodeWav:()=>new Blob(['wav']),decode:async()=>buffer(),...options});}
 const settle=()=>new Promise(resolve=>setImmediate(resolve));
 test('recording validation and microphone cleanup',async t=>{
+ ({VoiceRecorder}=await import('../src/services/VoiceRecorder.js'));
  await t.test('permission denial is actionable',async()=>{const r=recorder({capture:async()=>{throw Object.assign(Error(),{name:'NotAllowedError'});}});await r.start();assert.equal(r.state,'error');assert.match(r.message,/denied/);assert.equal(r.isBusy,false);});
  await t.test('cancellation while permission is pending stops a late stream',async()=>{let grant;const source=stream();const r=recorder({capture:()=>new Promise(resolve=>grant=resolve)});const pending=r.start();r.cancel();grant(source);await pending;assert.equal(source.track.readyState,'ended');assert.equal(r.state,'idle');});
  await t.test('stop is gated at 3 seconds and valid audio becomes a draft',async()=>{now=0;const source=stream();const r=recorder({capture:async()=>source});await r.start();now=1000;r.stop();assert.equal(r.state,'recording');now=4000;r.stop();assert.equal(source.track.readyState,'ended');await settle();assert.equal(r.state,'ready');assert.equal(r.draft.duration,4);});

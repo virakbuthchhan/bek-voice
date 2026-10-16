@@ -1,6 +1,7 @@
 #!/bin/sh
 set -eu
 cd "$(dirname "$0")"
+./scripts/build-frontend.sh
 if [ ! -d .venv ]; then
   PYTHON=""
   for candidate in python3.12 python3.11 python3.10 python3; do

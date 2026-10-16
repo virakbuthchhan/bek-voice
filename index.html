@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Bek: private text to speech and voice cloning on your device."
+    />
+    <meta name="theme-color" content="#f7f6f2" />
+    <title>Bek — Voice studio</title>
+    <script>
+      try {
+        const p = localStorage.getItem("bek-theme");
+        document.documentElement.dataset.theme =
+          p === "dark" ||
+          (p !== "light" && matchMedia("(prefers-color-scheme: dark)").matches)
+            ? "dark"
+            : "light";
+      } catch {}
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

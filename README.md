@@ -6,6 +6,33 @@ Text to speech, voice design, permission-based voice cloning, WAV export, estima
 
 Open **Documentation** in the sidebar (Docs on mobile), or click the help icon. The guide includes searchable topics, copyable setup commands, and direct links such as `#docs/python`, `#docs/docker`, and `#docs/troubleshooting`. It is bundled with the app and supports light/dark themes.
 
+## Frontend development (Vue + Vuetify)
+
+The frontend uses **Vue 3, Vuetify 4, and Vite** with local Google Sans fonts. Install **Node.js 22.12+** for development or the local launch scripts. Docker builds the frontend automatically; Node is not required on the Docker host.
+
+```sh
+npm ci
+npm run dev
+```
+
+Open the local URL printed by Vite. Browser inference runs in that page. The development server proxies `/api` to `http://127.0.0.1:8765` for the optional Python service; start it separately with `./start-python.sh` when testing Python inference.
+
+```sh
+npm test            # Recording, queue, splitting, merging, and browser-adapter tests
+npm run build       # Compile the static frontend into dist/
+npm run preview     # Preview the production build (browser engine only)
+```
+
+- `src/App.vue`: Vuetify layout, navigation, and theme integration.
+- `src/components/`: studio, voice settings/recording, audio results, libraries, settings, and documentation.
+- `src/composables/`: reactive generation state, preferences, routing, and object-URL lifecycle.
+- `src/services/`: browser engine, microphone capture, and IndexedDB persistence.
+- `src/lib/`: text splitting, sequential generation, WAV assembly, and audio utilities.
+- `src/data/guide.json`: bundled documentation content.
+- `public/`: unchanged inference worker/manifest, ONNX Runtime, and local fonts.
+
+`dist/` is generated and ignored by Git. Both local launch scripts install the locked frontend dependencies and build it before serving. Existing `sori-studio` IndexedDB and model-cache namespaces are retained. Use the same browser, hostname, and port to keep access to old saved work.
+
 ## Quick start with Docker Compose
 
 Install Docker Desktop on Windows/macOS, or Docker Engine and the Compose plugin on Linux. Clone using HTTPS (your friends do not need your SSH alias):
@@ -81,7 +108,7 @@ Model downloads go directly from Hugging Face to the visitor. Changing the domai
 
 ## Browser mode: one-time ≈1.9 GB download
 
-Serve `dist/` with any static HTTP server, or publish it to an HTTPS host. For example:
+Build with `npm ci && npm run build`, then serve `dist/` with a static HTTP server or publish it to an HTTPS host. Alternatively, the local script installs dependencies and builds automatically:
 
 ```sh
 ./start.sh
@@ -89,7 +116,7 @@ Serve `dist/` with any static HTTP server, or publish it to an HTTPS host. For e
 
 Open http://127.0.0.1:8765 in a current Chrome or Edge desktop browser with WebGPU and shader-f16 support.
 
-1. Under **Device and model**, click **Set up · ≈1.9 GB download**.
+1. Under **Local voice engine**, click **Set up · ≈1.9 GB download**.
 2. Wait for the progress bar and GPU preparation to finish.
 3. Enter text, select a voice direction, or upload/record a 3–30 second reference and confirm permission to clone it.
 4. Click **Generate speech**. Listen or download WAV and estimated SRT.
@@ -100,7 +127,7 @@ Scripts and references stay inside the browser during browser inference. Only mo
 
 ## Record a reference voice in the browser
 
-In **Voice cloning**, choose **Record voice**. Select the Khmer or English reading sample, then click **Start recording** and allow microphone access. Read in a quiet room using your natural voice; 10–20 seconds is a good target.
+In **Voice settings → Clone my voice**, choose **Record**. Select the Khmer or English reading sample, then click **Start recording** and allow microphone access. Read in a quiet room using your natural voice; 10–20 seconds is a good target.
 
 Click **Stop**, listen to the preview, then click **Use recording**. Give the voice a name, confirm permission, and generate speech or save it to **My voices**. You can record again or discard the take before using it. Uploading an existing WAV remains available.
 
@@ -128,7 +155,7 @@ Voice settings follow three steps: choose an AI voice or clone your own (saved v
 
 ## Optional Python engine
 
-The original Python model remains available under **Settings → Run speech on → Local Python service**. Install Python 3.10–3.12, then run:
+The original Python model remains available under **Settings → Run speech on → Local Python service**. Install Python 3.10–3.12 and Node.js 22.12+, then run:
 
 ```sh
 ./start-python.sh
@@ -139,6 +166,8 @@ Open http://127.0.0.1:8765, switch to Python mode, and click **Load Python model
 On Windows:
 
 ```powershell
+npm ci
+npm run build
 py -3.12 -m venv .venv
 .venv\Scripts\pip install -r local/requirements.txt
 .venv\Scripts\python local/server.py
@@ -157,12 +186,8 @@ py -3.12 -m venv .venv
 ## Checks
 
 ```sh
-node --check dist/app.js
-node --check dist/browser-engine.js
-node --check dist/browser-engine.worker.js
-node --check dist/voice-recorder.js
-node --check dist/speech-parts.js
-node --test scripts/test-voice-recorder.cjs scripts/test-speech-parts.cjs
+npm test
+npm run build
 python3 -m py_compile local/server.py
 ```
 

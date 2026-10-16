@@ -1,7 +1,13 @@
-# The image only needs the browser app and its web-server configuration.
+# Only frontend source, public assets, and NGINX configuration enter the build.
 **
 !Dockerfile
+!index.html
+!package.json
+!package-lock.json
+!vite.config.js
+!src/
+!src/**
+!public/
+!public/**
 !deploy/
 !deploy/nginx.conf
-!dist/
-!dist/**
