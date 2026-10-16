@@ -106,6 +106,10 @@ Click **Stop**, listen to the preview, then click **Use recording**. Give the vo
 - HTTPS is required on remote deployments; localhost HTTP works for local use. If access is denied, update the site's microphone permission in your browser or upload a WAV instead.
 - The reading passage is a prompt for the speaker, not an assumed transcript; cloning does not require reading it word for word.
 
+## Appearance
+
+Use the sun/moon button in the top bar to switch between light and dark themes. **Settings → Appearance** also offers **Use system theme**. The preference is saved on the device and applied before the page paints.
+
 ## Long scripts and audio parts
 
 Choose **Full voice** for one generation request containing the whole script, or **Split voice** for short parts (up to about 200 characters). Split mode prefers paragraphs, sentences, and word boundaries; Khmer character clusters stay together. Both modes work with the browser and Python engines. Full mode can take longer before the first audio is available.

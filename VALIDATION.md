@@ -70,3 +70,10 @@ Generation, output duration, downloads, and application flows were verified. Spe
 - Browser checks passed for saved-voice selection, permission reminder/ready state, changing a sample, and the recording sample UI. No microphone capture was started. Original draft and Split voice preference were restored after testing.
 - Desktop and mobile 390px AI/cloning/recording layouts had no horizontal overflow. Removed the mobile mode-dependent panel reorder so changing voice modes keeps the panel in the same place. No browser console errors were reported.
 - Rebuilt Docker and passed the deployment asset, health, MIME, and range smoke checks. Browser GPU inference was not repeated; this feature's real inference checks used Python.
+
+## Light/dark theme toggle — 2026-10-16
+
+- Added a keyboard-accessible sun/moon toggle in the header and a System/Light/Dark selector in Settings. System appearance is the default; explicit choices persist locally and apply before CSS paints. Native inputs/audio use the selected color scheme.
+- Browser checks passed for toggling both ways, Enter-key activation, light/dark persistence after reload, and returning to system mode. System mode resolved to dark on the test device. OS appearance was not changed during testing.
+- Reviewed dark editor/Khmer text, voice settings, Settings, saved audio parts, and native audio controls. Mobile header checks at 390px and 320px showed no horizontal document overflow. Browser console reported no errors.
+- Docker rebuild and asset/health/MIME/range smoke checks passed, including theme.js. JavaScript syntax and whitespace checks passed. Speech inference was unchanged and was not rerun for this visual feature.
