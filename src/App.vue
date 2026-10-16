@@ -1,5 +1,5 @@
 <script setup>
-import { computed, watch, onMounted, defineAsyncComponent } from "vue";
+import { computed, ref, watch, onMounted, defineAsyncComponent } from "vue";
 import { useDisplay } from "vuetify";
 import {
   mdiWaveform,
@@ -12,8 +12,15 @@ import {
   mdiWeatherNight,
   mdiHelpCircleOutline,
   mdiShieldCheckOutline,
+  mdiMenuOpen,
+  mdiMenu,
 } from "@mdi/js";
-import { usePreferences, useRoute } from "./composables/usePreferences.js";
+import {
+  usePreferences,
+  useRoute,
+  readPreference,
+  savePreference,
+} from "./composables/usePreferences.js";
 import { useStudio } from "./composables/useStudio.js";
 import LoadingView from "./components/LoadingView.vue";
 const lazy = (loader) =>
@@ -26,6 +33,16 @@ const { theme, preference, toggle } = usePreferences(),
   { route, topic, navigate } = useRoute(),
   { mobile, width } = useDisplay(),
   studio = useStudio();
+const sidebarPreference = ref(readPreference("bek-sidebar-collapsed", "auto"));
+const sidebarCollapsed = computed(() =>
+  sidebarPreference.value === "auto"
+    ? width.value < 1200
+    : sidebarPreference.value === "true",
+);
+function toggleSidebar() {
+  sidebarPreference.value = String(!sidebarCollapsed.value);
+  savePreference("bek-sidebar-collapsed", sidebarPreference.value);
+}
 const navigation = [
   { id: "studio", label: "Studio", icon: mdiTextBoxOutline },
   { id: "voices", label: "My voices", icon: mdiAccountVoice },
@@ -76,14 +93,15 @@ onMounted(() => {
     ><v-navigation-drawer
       v-if="!mobile"
       permanent
-      :rail="width < 1200"
+      id="workspace-navigation"
+      :rail="sidebarCollapsed"
       width="232"
       theme="bekDark"
       :color="theme === 'bekDark' ? 'rail' : '#262923'"
       class="app-drawer"
       ><div
         class="brand"
-        :class="{ 'brand-rail': width < 1200 }"
+        :class="{ 'brand-rail': sidebarCollapsed }"
         role="button"
         tabindex="0"
         aria-label="Bek studio"
@@ -91,17 +109,17 @@ onMounted(() => {
         @keydown.enter="navigate('studio')"
       >
         <v-icon :icon="mdiWaveform" color="primary" size="32" /><span
-          v-if="width >= 1200"
+          v-if="!sidebarCollapsed"
           >bek<span class="brand-dot">.</span></span
         >
       </div>
       <p
-        v-if="width >= 1200"
+        v-if="!sidebarCollapsed"
         class="eyebrow px-6 mt-8 mb-3 text-medium-emphasis"
       >
         YOUR WORKSPACE
       </p>
-      <v-list nav class="px-3"
+      <v-list nav :class="sidebarCollapsed ? 'px-2' : 'px-3'"
         ><v-list-item
           v-for="item in navigation"
           :key="item.id"
@@ -114,14 +132,19 @@ onMounted(() => {
           rounded="lg"
           class="mb-2"
           @click="navigate(item.id)"
-          ><template v-if="item.id === 'voices' && width >= 1200" #append
+          ><v-tooltip
+            activator="parent"
+            location="end"
+            :disabled="!sidebarCollapsed"
+            :text="item.label"
+          /><template v-if="item.id === 'voices' && !sidebarCollapsed" #append
             ><v-chip size="x-small" variant="tonal">{{
               studio.voices.length
             }}</v-chip></template
           ></v-list-item
         ></v-list
       ><template #append
-        ><div v-if="width >= 1200" class="privacy-note ma-5 pa-3">
+        ><div v-if="!sidebarCollapsed" class="privacy-note ma-5 pa-3">
           <v-icon :icon="mdiShieldCheckOutline" size="22" />
           <p class="text-body-medium font-weight-medium mt-3">
             A little more private.
@@ -138,6 +161,14 @@ onMounted(() => {
     <v-app-bar flat height="72" class="app-topbar" border="b"
       ><template #prepend
         ><v-btn
+          v-if="!mobile"
+          :icon="sidebarCollapsed ? mdiMenu : mdiMenuOpen"
+          :aria-label="sidebarCollapsed ? 'Expand navigation' : 'Collapse navigation'"
+          :title="sidebarCollapsed ? 'Expand navigation' : 'Collapse navigation'"
+          :aria-expanded="!sidebarCollapsed"
+          aria-controls="workspace-navigation"
+          @click="toggleSidebar"
+        /><v-btn
           v-if="mobile"
           :icon="mdiWaveform"
           color="primary"
