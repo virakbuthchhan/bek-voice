@@ -2,6 +2,20 @@
 
 Text to speech, voice design, permission-based voice cloning, WAV export, estimated SRT, and browser-local voice/audio libraries.
 
+## Screenshots
+
+### Studio · Light theme
+
+Write your script and choose a voice, language, and delivery in one workspace.
+
+![Bek studio in light mode with script editor, voice settings, and expanded navigation](docs/screenshots/studio-light.jpg)
+
+### Studio · Dark theme with compact navigation
+
+Collapse the sidebar with the top-left menu button to give your script more room. Your navigation preference is saved on this device.
+
+![Bek studio in dark mode with the sidebar collapsed to an icon menu](docs/screenshots/studio-dark-compact.jpg)
+
 ## In-app documentation
 
 Open **Documentation** in the sidebar (Docs on mobile), or click the help icon. The guide includes searchable topics, copyable setup commands, and direct links such as `#docs/python`, `#docs/docker`, and `#docs/troubleshooting`. It is bundled with the app and supports light/dark themes.
