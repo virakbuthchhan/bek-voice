@@ -2,6 +2,79 @@
 
 Text to speech, voice design, permission-based voice cloning, WAV export, estimated SRT, and browser-local voice/audio libraries.
 
+## Quick start with Docker Compose
+
+Install Docker Desktop on Windows/macOS, or Docker Engine and the Compose plugin on Linux. Clone using HTTPS (your friends do not need your SSH alias):
+
+```sh
+git clone https://github.com/virakbuthchhan/bek-voice.git
+cd bek-voice
+docker compose up -d --build
+```
+
+Open **http://localhost:8765** in Chrome or Edge. Click **Set up · ≈1.9 GB download**, wait for the model to be ready, then generate speech or clone a permitted voice.
+
+The container serves the app. **AI generation uses each visitor's browser GPU**, so no GPU, Python speech dependencies, API key, or model download is needed on the Docker host. Windows/macOS/Linux hosts and ARM64/AMD64 images are supported by the base image; visitors still need a compatible browser and GPU. Model files, voices, and audio history stay in that visitor's browser. Container restarts do not erase browser data.
+
+The default port is bound only to the host's loopback interface. To change it, copy `.env.example` to `.env` and set `PORT=8876`, then run the same command. Access the app using a consistent hostname and port: browser storage is separate for every origin, including `localhost` versus `127.0.0.1`.
+
+```sh
+docker compose ps                 # Container and health status
+docker compose logs -f           # Logs
+docker compose down              # Stop and remove the container
+git pull
+docker compose up -d --build     # Apply an update
+```
+
+Use the modern `docker compose` plugin. The retired Python-based `docker-compose` v1 command is not required.
+
+### Docker without Compose
+
+```sh
+docker build -t bek-voice .
+docker run -d --name bek-voice --restart unless-stopped -p 127.0.0.1:8765:8080 bek-voice
+```
+
+## Deploy on a VPS with HTTPS
+
+The VPS serves the same browser app; voice processing still runs on visitors' computers. The included production stack uses Caddy for automatic HTTPS and stores certificates in named Docker volumes.
+
+1. Install Docker Engine and the Compose plugin on the VPS.
+2. Point your domain's DNS A record to the VPS IPv4 address. Only add an AAAA record if IPv6 is also routed to that VPS. Allow inbound TCP ports **80 and 443**; UDP 443 is optional for HTTP/3. Keep SSH access available.
+3. Clone the repository and configure your real domain and certificate contact email:
+
+```sh
+git clone https://github.com/virakbuthchhan/bek-voice.git
+cd bek-voice
+cp .env.example .env
+# Edit .env:
+# DOMAIN=voice.your-domain.com
+# ACME_EMAIL=you@your-domain.com
+```
+
+4. Start the standalone VPS configuration:
+
+```sh
+docker compose -f compose.vps.yaml up -d --build
+docker compose -f compose.vps.yaml logs -f caddy
+```
+
+Open **https://voice.your-domain.com** after DNS resolves and Caddy obtains a certificate. Use the same `-f compose.vps.yaml` argument for `ps`, `logs`, `down`, and future updates. Do not combine the local and VPS Compose files. Port 8080 stays internal to the VPS Docker network; only Caddy publishes ports.
+
+**HTTPS is required for browser WebGPU on remote hosts.** An `http://VPS_IP:8765` or plain HTTP LAN address is not a working substitute for HTTPS. Localhost HTTP is suitable for local use. This requirement is documented by [WebGPU](https://developer.mozilla.org/en-US/docs/Web/API/WebGPU_API); certificate provisioning requirements are in [Caddy's HTTPS documentation](https://caddyserver.com/docs/automatic-https).
+
+If another reverse proxy already owns ports 80/443, use `compose.yaml` to serve on VPS loopback and configure that proxy to terminate HTTPS and forward to `127.0.0.1:8765`. Ensure its response MIME types preserve JavaScript modules and `application/wasm`. Do not put the site in a cross-origin iframe that blocks WebGPU.
+
+Model downloads go directly from Hugging Face to the visitor. Changing the domain or port starts a new browser-storage origin. The production stack is a static website, not a shared server-side inference service; the optional local Python engine below is not included in these containers.
+
+### Troubleshooting
+
+- **Port already in use:** change `PORT` in `.env` for local Compose. On a VPS, ensure Caddy can use 80/443 or use your existing HTTPS reverse proxy.
+- **WebGPU unavailable:** open localhost or the HTTPS domain in a current Chrome/Edge desktop browser, enable hardware acceleration, and check GPU/shader-f16 support.
+- **Model download/storage errors:** keep at least 2.2 GB of browser site-storage capacity available and allow downloads from Hugging Face. Resume setup; completed segments are reused.
+- **New version not visible:** refresh the page. If necessary, close/reopen the app. Clearing site data also removes model and voice caches, so reserve that for a full reset.
+- **VPS certificate not issued:** check DNS (including AAAA records), reachability on 80/443, and Caddy logs. The certificate volumes must remain writable. `down -v` deletes certificate volumes; normal `down` preserves them.
+
 ## Browser mode: one-time ≈1.9 GB download
 
 Serve `dist/` with any static HTTP server, or publish it to an HTTPS host. For example:
@@ -57,3 +130,13 @@ node --check dist/browser-engine.js
 node --check dist/browser-engine.worker.js
 python3 -m py_compile local/server.py
 ```
+
+To check a running Docker deployment without downloading the model again:
+
+```sh
+python3 scripts/smoke-container.py http://localhost:8765
+docker compose config --quiet
+docker compose --env-file .env.example -f compose.vps.yaml config --quiet
+```
+
+The smoke check validates app assets, health, module/WASM content types, byte ranges, and deployment headers. It does not perform GPU inference or request public TLS certificates.

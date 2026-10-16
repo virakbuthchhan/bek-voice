@@ -1,0 +1,7 @@
+# The image only needs the browser app and its web-server configuration.
+**
+!Dockerfile
+!deploy/
+!deploy/nginx.conf
+!dist/
+!dist/**
