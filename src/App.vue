@@ -78,7 +78,8 @@ onMounted(() => {
       permanent
       :rail="width < 1200"
       width="232"
-      color="rail"
+      theme="bekDark"
+      :color="theme === 'bekDark' ? 'rail' : '#262923'"
       class="app-drawer"
       ><div
         class="brand"
