@@ -1,0 +1,4 @@
+# Match the CUDA base image; keep audio binaries compatible with PyTorch.
+torch==2.8.0
+torchaudio==2.8.0
+torchcodec==0.7.0

@@ -1,0 +1,20 @@
+# CUDA 12.8 image for Linux x86_64 NVIDIA GPU hosts.
+FROM pytorch/pytorch:2.8.0-cuda12.8-cudnn9-runtime
+WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends libsndfile1 ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+COPY local/requirements.txt local/constraints-gpu.txt /app/local/
+RUN python -m pip install --no-cache-dir -c local/constraints-gpu.txt -r local/requirements.txt
+RUN useradd --uid 10001 --create-home bek \
+    && mkdir -p /app/.models && chown -R bek:bek /app
+COPY --chown=bek:bek local/server.py /app/local/server.py
+ENV BEK_SERVER_MODE=remote BEK_PORT=8765 SORI_DEVICE=cuda \
+    HF_HOME=/app/.models TORCH_HOME=/app/.models/torch \
+    XDG_CACHE_HOME=/app/.models/cache MODELSCOPE_CACHE=/app/.models/modelscope \
+    GRADIO_TEMP_DIR=/tmp/gradio MPLCONFIGDIR=/tmp/matplotlib NUMBA_CACHE_DIR=/tmp/numba \
+    PYTHONUNBUFFERED=1
+USER bek
+EXPOSE 8765
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+  CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8765/healthz', timeout=3)" || exit 1
+CMD ["python", "local/server.py"]

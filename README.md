@@ -1,6 +1,6 @@
 # Bek — Local voice studio
 
-Text to speech, voice design, permission-based voice cloning, WAV export, estimated SRT, and browser-local voice/audio libraries.
+Text to speech, voice design, permission-based voice cloning, WAV export, estimated SRT, browser-local voice/audio libraries, and an optional authenticated GPU server.
 
 ## Screenshots
 
@@ -88,7 +88,71 @@ docker build -t bek-voice .
 docker run -d --name bek-voice --restart unless-stopped -p 127.0.0.1:8765:8080 bek-voice
 ```
 
-## Deploy on a VPS with HTTPS
+## Generate on your own GPU VPS
+
+Choose where AI runs in **Settings → Run speech on**:
+
+| Option | AI runs on | Connection |
+| --- | --- | --- |
+| This browser | The visitor’s WebGPU device | No credentials; one-time ≈1.9 GB browser model |
+| This computer · Python | The computer running `./start-python.sh` | Loopback-only local service; ≈5 GB model |
+| My GPU server | Your own VPS | HTTPS server address + API access token; ≈5 GB model on VPS |
+
+The server option also supports Full voice, Split voice, reference-voice cloning, part playback/downloads, and merging. **Server mode sends scripts, voice directions, and reference recordings to your server.** Completed audio and your library are stored in the browser. The built-in API does not persist scripts or generated audio; temporary reference files are deleted after each request. Your hosting provider or any custom proxy logging may have its own retention behavior.
+
+![Bek server settings with HTTPS address and access-token connection form](docs/screenshots/gpu-server.jpg)
+
+### Deploy the authenticated GPU stack
+
+The included GPU configuration targets **Linux x86_64 with an NVIDIA GPU and CUDA 12.8-compatible drivers**. Install Docker Engine, Compose, the NVIDIA driver, and the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html). Follow [Docker’s GPU reservation guide](https://docs.docker.com/compose/how-tos/gpu-support/) to confirm containers can access the GPU. AMD/ROCm and ARM GPU servers need a matching image and device configuration; this CUDA stack does not configure them.
+
+1. Clone this repository on the VPS. Point your domain to it, allow ports 80/443, and ensure no other service already occupies those ports.
+2. Copy `.env.example` to `.env`, generate a token using `openssl rand -hex 32`, and set:
+
+```dotenv
+DOMAIN=voice.your-domain.com
+ACME_EMAIL=you@example.com
+BEK_API_TOKEN=replace-with-your-generated-token
+BEK_ALLOWED_ORIGINS=https://voice.your-domain.com,http://127.0.0.1:8765,http://localhost:8765
+```
+
+`BEK_ALLOWED_ORIGINS` is a comma-separated list of exact **app origins** that may connect, with no trailing slash or wildcard. Add the real HTTPS origin if you host the frontend separately. Localhost entries let your locally running app connect to the VPS. Remove origins you do not use. CORS is an origin restriction; the access token authenticates every API request, including command-line requests without an Origin header.
+
+3. Start this **standalone** Compose file; do not combine it with `compose.yaml` or `compose.vps.yaml`:
+
+```sh
+docker compose -f compose.gpu.yaml up -d --build
+docker compose -f compose.gpu.yaml ps
+docker compose -f compose.gpu.yaml logs -f inference
+```
+
+The CUDA image and Python dependencies are large. The `inference` service runs as a non-root user, uses one NVIDIA GPU, and keeps downloaded model files in the `model_cache` volume. The API has no published port; Caddy exposes it through HTTPS at `/api/*`, and serves the frontend on the same domain. The API starts without loading weights. The health check confirms HTTP availability, not model readiness. The frontend’s connection check reads the authenticated model status.
+
+4. Open the app, choose **My GPU server**, enter `https://voice.your-domain.com` and your API token, then click **Connect to server**. Click **Load server model** once and wait for Ready before generating.
+
+The token is sent as an Authorization Bearer header, never in the URL. The app keeps it **in memory only**, clears the password field after connecting, and requires it again after refreshing. Only the server address and engine choice are saved. Do not enter SSH passwords, private keys, or root credentials into the app. The app’s API token grants generation/model-loading access to anyone who holds it; use this stack for your own users, rather than as an anonymous public service.
+
+To revoke access, replace `BEK_API_TOKEN` in the VPS `.env` and recreate the API service:
+
+```sh
+docker compose -f compose.gpu.yaml up -d --force-recreate inference
+```
+
+Existing clients must reconnect with the new token. Never commit `.env`. Stopping with `down` preserves cached weights; `down -v` removes the model and certificate volumes.
+
+The API runs one model operation at a time. Another client receives a busy response and can retry; this is not a multi-user job scheduler. With Split voice, completed parts remain available if a later part fails, and you can continue while the page and original server connection remain open. Disconnecting or updating the server connection clears the unfinished-run continuation credentials. HTTP transport failures can leave the server finishing its current request; check status before retrying.
+
+### Server troubleshooting
+
+- **Token rejected:** confirm `.env` and the app use the same API token (32–512 printable ASCII characters with no whitespace); recreate `inference` after changing it.
+- **Cannot connect / origin blocked:** confirm valid HTTPS, DNS, Caddy status, and that your exact app origin is listed. Redirects are refused so tokens cannot follow another endpoint. Enter just the server origin, without `/api` or a path.
+- **GPU unavailable / load fails:** check `nvidia-smi` and NVIDIA container support on the VPS, then inspect inference logs. The available GPU memory and actual model run must be verified on your hardware.
+- **Another generation is running:** wait for the current server request, then retry. Split mode keeps completed parts.
+- **Local Python from a hosted app:** browser AI works directly. For native local Python, open the app from `./start-python.sh` on your computer; the hosted site does not connect to an unauthenticated local Python API.
+
+The GPU base uses PyTorch 2.8/CUDA 12.8, matched torchaudio, and a [compatible TorchCodec version](https://github.com/meta-pytorch/torchcodec#compatibility-with-torch-versions). Model files download only when an authenticated user requests model loading.
+
+## Deploy browser-only hosting on a VPS with HTTPS
 
 The VPS serves the same browser app; voice processing still runs on visitors' computers. The included production stack uses Caddy for automatic HTTPS and stores certificates in named Docker volumes.
 

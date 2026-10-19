@@ -1,0 +1,53 @@
+# Standalone GPU VPS stack. Do not merge with the other Compose files.
+services:
+  web:
+    build: .
+    restart: unless-stopped
+    read_only: true
+    tmpfs: ["/tmp:size=64m,mode=1777"]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    expose: ["8080"]
+  inference:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.gpu
+    platform: linux/amd64
+    restart: unless-stopped
+    read_only: true
+    tmpfs: ["/tmp:size=256m,mode=1777"]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    environment:
+      BEK_API_TOKEN: ${BEK_API_TOKEN:?Set a random API token of at least 32 characters in .env}
+      BEK_ALLOWED_ORIGINS: ${BEK_ALLOWED_ORIGINS:?Set exact allowed app origins in .env}
+    volumes:
+      - model_cache:/app/.models
+    expose: ["8765"]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      web:
+        condition: service_healthy
+      inference:
+        condition: service_healthy
+    ports: ["80:80", "443:443", "443:443/udp"]
+    environment:
+      DOMAIN: ${DOMAIN:?Set your public hostname in .env}
+      ACME_EMAIL: ${ACME_EMAIL:?Set your certificate email in .env}
+    volumes:
+      - ./deploy/Caddyfile.gpu:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+volumes:
+  model_cache:
+  caddy_data:
+  caddy_config:

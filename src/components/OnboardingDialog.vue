@@ -79,11 +79,11 @@ const icon = (status) =>
         </div>
         <p class="eyebrow mb-2">WELCOME TO BEK</p>
         <h1 id="onboarding-title" class="text-headline-small font-weight-bold">
-          Your voice. Your device.
+          Your voice. Your choice.
         </h1>
         <p class="text-body-medium text-medium-emphasis mt-3">
           Turn a script into speech or clone a voice you have permission to use.
-          Let’s find the right way to run AI on your computer.
+          Let’s choose where your AI should run.
         </p>
         <v-sheet
           border
@@ -153,6 +153,19 @@ const icon = (status) =>
             computer hosting the local service. It needs a separate setup and
             about a 5 GB download.
           </p>
+          <p class="text-body-medium text-medium-emphasis mt-3">
+            <strong>GPU server</strong> runs AI on your own VPS. Connect with
+            its HTTPS address and API token. Scripts and reference audio are
+            sent to that server.
+          </p>
+          <v-btn
+            variant="tonal"
+            color="primary"
+            class="mt-3"
+            :disabled="engineBusy"
+            @click="finish('server')"
+            >Connect a GPU server</v-btn
+          >
         </div>
       </v-card-text>
       <v-divider />

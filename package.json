@@ -10,7 +10,7 @@
     "dev": "vite --host 127.0.0.1",
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1",
-    "test": "node --test scripts/test-voice-recorder.cjs scripts/test-speech-parts.js scripts/test-audio.js scripts/test-device-check.js"
+    "test": "node --test scripts/test-voice-recorder.cjs scripts/test-speech-parts.js scripts/test-audio.js scripts/test-device-check.js scripts/test-remote-engine.js"
   },
   "dependencies": {
     "vue": "3.5.44",

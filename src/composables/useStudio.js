@@ -7,6 +7,7 @@ import {
   onMounted,
   onBeforeUnmount,
 } from "vue";
+import { RemoteVoiceEngine } from "../services/RemoteVoiceEngine.js";
 import { BrowserVoiceEngine } from "../services/BrowserVoiceEngine.js";
 import { VoiceRecorder } from "../services/VoiceRecorder.js";
 import * as library from "../services/library.js";
@@ -68,10 +69,17 @@ export function useStudio() {
     seed: "",
     outputMode:
       readPreference("bek-output-mode", "split") === "full" ? "full" : "split",
-    engineChoice:
-      readPreference("sori-engine", "browser") === "python"
-        ? "python"
-        : "browser",
+    engineChoice: ["python", "server"].includes(
+      readPreference("sori-engine", "browser"),
+    )
+      ? readPreference("sori-engine", "browser")
+      : "browser",
+    remote: {
+      url: readPreference("bek-server-url", ""),
+      connected: false,
+      connecting: false,
+      error: "",
+    },
     engine: { state: "idle", message: "Checking connection…" },
     browser: {
       state: "idle",
@@ -106,7 +114,7 @@ export function useStudio() {
     draftSaved: true,
     now: Date.now(),
   });
-  let browser, mic, poll, ticker, lastOptions;
+  let browser, mic, poll, ticker, lastOptions, remoteClient;
   function notify(message) {
     state.message = message;
     state.snackbar = true;
@@ -202,7 +210,67 @@ export function useStudio() {
       notify("Browser storage is unavailable. Downloads still work.");
     }
   }
+  async function connectRemote(address, token) {
+    if (state.busy || state.remote.connecting) return false;
+    state.remote.connecting = true;
+    state.remote.error = "";
+    let candidate;
+    try {
+      candidate = markRaw(new RemoteVoiceEngine(address, token));
+      const status = await candidate.status();
+      remoteClient?.disconnect();
+      remoteClient = candidate;
+      lastOptions = null;
+      state.remote.url = candidate.origin;
+      state.remote.connected = true;
+      savePreference("bek-server-url", candidate.origin);
+      if (state.engineChoice === "server") state.engine = status;
+      notify("Connected to your voice server.");
+      return true;
+    } catch (error) {
+      candidate?.disconnect();
+      state.remote.error = error.message;
+      return false;
+    } finally {
+      state.remote.connecting = false;
+    }
+  }
+  function disconnectRemote() {
+    if (state.busy || state.remote.connecting) return;
+    remoteClient?.disconnect();
+    remoteClient = null;
+    lastOptions = null;
+    state.remote.connected = false;
+    state.remote.error = "";
+    if (state.engineChoice === "server")
+      state.engine = {
+        state: "offline",
+        message: "Connect to your GPU server to generate speech.",
+      };
+  }
   async function checkEngine() {
+    if (state.engineChoice === "server") {
+      if (state.remote.connecting) return;
+      if (!remoteClient || !state.remote.connected) {
+        state.engine = {
+          state: "offline",
+          message:
+            "Connect to your GPU server in Settings. Your access token is required after a refresh.",
+        };
+        return;
+      }
+      const client = remoteClient;
+      try {
+        const status = await client.status();
+        if (state.engineChoice === "server" && remoteClient === client)
+          state.engine = status;
+      } catch (error) {
+        if (state.engineChoice !== "server" || remoteClient !== client) return;
+        if (error.status === 401) disconnectRemote();
+        state.engine = { state: "offline", message: error.message };
+      }
+      return;
+    }
     if (state.engineChoice === "browser") {
       syncBrowser();
       return;
@@ -221,8 +289,9 @@ export function useStudio() {
       const body = await response.json();
       if (!response.ok)
         throw Error(body.error || "Python service unavailable.");
-      state.engine = body;
+      if (state.engineChoice === "python") state.engine = body;
     } catch (error) {
+      if (state.engineChoice !== "python") return;
       state.engine = {
         state: "offline",
         message: error.message.includes("browser WebGPU")
@@ -232,24 +301,38 @@ export function useStudio() {
     }
   }
   async function loadModel() {
+    const selected = state.engineChoice,
+      client = remoteClient;
     try {
       if (state.engineChoice === "browser") {
         await browser.load();
         notify("Browser model ready. You can now generate speech.");
+      } else if (state.engineChoice === "server") {
+        if (!remoteClient) throw Error("Connect to your GPU server first.");
+        const status = await client.load();
+        if (state.engineChoice === selected && client === remoteClient) {
+          state.engine = status;
+          notify("Server model setup requested.");
+        }
       } else {
         const response = await fetch("/api/load", { method: "POST" }),
           body = await response.json();
         if (!response.ok) throw Error(body.error || "Model setup failed.");
-        state.engine = body;
-        notify("Python model setup started.");
+        if (state.engineChoice === selected) {
+          state.engine = body;
+          notify("Python model setup started.");
+        }
       }
     } catch (error) {
       if (error.code !== "CANCELLED") notify(error.message);
     }
   }
   function setEngine(value) {
-    if (state.busy || browser.state === "loading")
+    if (state.busy || browser.state === "loading" || state.remote.connecting)
       return notify("Finish the current operation before switching engines.");
+    if (!["browser", "python", "server"].includes(value)) return;
+    if (state.engineChoice === value) return checkEngine();
+    state.engine = { state: "offline", message: "Checking selected engine…" };
     state.engineChoice = value;
   }
   function applyReference(blob, name, duration, voiceId = null) {
@@ -358,6 +441,13 @@ export function useStudio() {
     // Mutate the same reactive run rendered by Vue; convert proxies only at the persistence boundary.
     batch = state.activeBatch;
     try {
+      if (
+        options.engine !== state.engineChoice ||
+        (options.engine === "server" && options.remoteClient !== remoteClient)
+      )
+        throw Error(
+          "Return to the original engine and connection before continuing this run.",
+        );
       await checkEngine();
       if (state.engine.state !== "ready")
         throw Error("Load the selected model first in Settings.");
@@ -369,7 +459,7 @@ export function useStudio() {
           ? await referenceVoice(options.reference, options.directions)
           : { kind: "design", description: options.directions };
       if (
-        options.engine === "python" &&
+        options.engine !== "browser" &&
         options.reference &&
         !options.referenceBase64
       )
@@ -391,6 +481,8 @@ export function useStudio() {
             reference: options.referenceBase64 || null,
             consent: options.consent,
           };
+          if (options.engine === "server")
+            return options.remoteClient.generate(body);
           const response = await fetch("/api/generate", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -468,6 +560,7 @@ export function useStudio() {
     };
     startQueue(batch, {
       engine: state.engineChoice,
+      remoteClient: state.engineChoice === "server" ? remoteClient : undefined,
       directions,
       settings: {
         cfg: Number(state.guidance),
@@ -526,9 +619,12 @@ export function useStudio() {
     clearInterval(ticker);
     mic.cancel();
     browser.cancel();
+    remoteClient?.disconnect();
     window.removeEventListener("pagehide", pageHide);
   });
   return Object.assign(state, {
+    connectRemote,
+    disconnectRemote,
     ready,
     partCount,
     completed,

@@ -54,7 +54,7 @@ function select(id) {
     <div>
       <div class="eyebrow">THE BEK GUIDE</div>
       <h1>A little guidance.</h1>
-      <p>Everything you need to create voices on your own device.</p>
+      <p>Guides for browser AI, local Python, and your GPU server.</p>
     </div>
     <v-btn variant="outlined" @click="emit('navigate', 'studio')"
       >Open studio ↗</v-btn

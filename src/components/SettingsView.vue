@@ -1,4 +1,5 @@
 <script setup>
+import ServerConnection from "./ServerConnection.vue";
 import ModelPanel from "./ModelPanel.vue";
 defineProps({ studio: Object, preference: String });
 const emit = defineEmits(["update:preference", "navigate", "onboarding"]);
@@ -45,42 +46,58 @@ const emit = defineEmits(["update:preference", "navigate", "onboarding"]);
   ><v-row
     ><v-col cols="12" md="7"
       ><v-card variant="outlined" class="pa-5 pa-md-6 mb-5"
-        ><h2 class="text-title-large font-weight-bold">Your local engine</h2>
+        ><h2 class="text-title-large font-weight-bold">Where should AI run?</h2>
         <p class="text-body-medium text-medium-emphasis mt-2 mb-5">
-          Choose where to run voice generation.
+          Use your computer or connect to a private GPU server.
         </p>
         <v-select
           :model-value="studio.engineChoice"
           @update:model-value="studio.setEngine"
           :items="[
             { title: 'This browser · WebGPU · ≈1.9 GB', value: 'browser' },
-            { title: 'Local Python service · ≈5 GB', value: 'python' },
+            { title: 'This computer · Python · ≈5 GB', value: 'python' },
+            { title: 'My GPU server · Access token required', value: 'server' },
           ]"
           label="Run speech on"
           :disabled="studio.busy || studio.browser.state === 'loading'"
+        /><ServerConnection
+          v-if="studio.engineChoice === 'server'"
+          :studio="studio"
+          @navigate="emit('navigate', $event)"
         /><v-alert
           variant="tonal"
           :color="studio.engine.state === 'ready' ? 'success' : 'primary'"
           class="text-body-medium"
           >{{ studio.engine.message }}</v-alert
-        ><template v-if="studio.engineChoice === 'python'"
+        ><template
+          v-if="
+            studio.engineChoice === 'python' || studio.engineChoice === 'server'
+          "
           ><p class="text-body-medium text-medium-emphasis my-5">
-            Run the included Python service to use the original model on MPS,
-            CUDA, or CPU. Model setup downloads about 5 GB.
+            {{
+              studio.engineChoice === "server"
+                ? "The original model downloads and runs on your server. The first setup downloads about 5 GB to the VPS."
+                : "Run the included Python service to use the original model on MPS, CUDA, or CPU. Model setup downloads about 5 GB."
+            }}
           </p>
-          <code class="inline-command">./start-python.sh</code>
+          <code v-if="studio.engineChoice === 'python'" class="inline-command"
+            >./start-python.sh</code
+          >
           <div class="d-flex ga-2 flex-wrap mt-5">
             <v-btn
               color="primary"
               :disabled="
-                ['ready', 'busy', 'loading'].includes(studio.engine.state)
+                ['ready', 'busy', 'loading'].includes(studio.engine.state) ||
+                (studio.engineChoice === 'server' && !studio.remote.connected)
               "
               :loading="studio.engine.state === 'loading'"
               @click="studio.loadModel"
               >{{
                 studio.engine.state === "ready"
-                  ? "Python model loaded"
-                  : "Load Python model"
+                  ? "Model loaded"
+                  : studio.engineChoice === "server"
+                    ? "Load server model"
+                    : "Load Python model"
               }}</v-btn
             ><v-btn variant="outlined" @click="studio.checkEngine"
               >Check connection</v-btn
@@ -93,7 +110,11 @@ const emit = defineEmits(["update:preference", "navigate", "onboarding"]);
             emit(
               'navigate',
               'docs/' +
-                (studio.engineChoice === 'python' ? 'python' : 'models'),
+                (studio.engineChoice === 'server'
+                  ? 'server'
+                  : studio.engineChoice === 'python'
+                    ? 'python'
+                    : 'models'),
             )
           "
           >Setup guide ↗</v-btn
@@ -109,6 +130,8 @@ const emit = defineEmits(["update:preference", "navigate", "onboarding"]);
         <p class="text-body-medium text-medium-emphasis my-4">
           Browser mode keeps scripts, recordings, and generated audio on your
           device. Python mode uses the loopback service on your own computer.
+          Server mode sends scripts and reference audio to the server you
+          connect to.
         </p>
         <v-divider />
         <h3 class="text-title-medium font-weight-bold mt-5">

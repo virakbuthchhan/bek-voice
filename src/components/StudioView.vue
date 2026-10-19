@@ -21,6 +21,20 @@ watch(
 );
 </script>
 <template>
+  <v-alert
+    v-if="studio.engineChoice === 'server'"
+    variant="tonal"
+    color="primary"
+    class="mb-5 text-body-medium"
+  >
+    <strong>Server generation</strong> ·
+    {{
+      studio.remote.connected
+        ? studio.remote.url
+        : "Connect your GPU server in Settings."
+    }}<br />Scripts and reference recordings are sent to your server. Audio is
+    saved in this browser.
+  </v-alert>
   <div class="page-heading">
     <div class="eyebrow">CREATE</div>
     <h1>Let’s hear it.</h1>

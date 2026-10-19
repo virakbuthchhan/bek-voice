@@ -68,18 +68,25 @@ const title = computed(
   () => navigation.find((item) => item.id === route.value)?.label || "Studio",
 );
 const engineLabel = computed(() =>
-  studio.engineChoice === "python"
+  studio.engineChoice === "server"
     ? {
-        ready: "Python engine ready",
-        loading: "Loading Python model…",
-        busy: "Generating locally…",
-        idle: "Python service connected",
-      }[studio.engine.state] || "Python service offline"
-    : {
-        ready: "Browser model ready",
-        loading: "Preparing browser model…",
-        busy: "Generating on your GPU…",
-      }[studio.browser.state] || "Browser AI · WebGPU",
+        ready: "Server GPU ready",
+        loading: "Loading server model…",
+        busy: "Generating on server…",
+        idle: "Server connected",
+      }[studio.engine.state] || "Connect GPU server"
+    : studio.engineChoice === "python"
+      ? {
+          ready: "Python engine ready",
+          loading: "Loading Python model…",
+          busy: "Generating locally…",
+          idle: "Python service connected",
+        }[studio.engine.state] || "Python service offline"
+      : {
+          ready: "Browser model ready",
+          loading: "Preparing browser model…",
+          busy: "Generating on your GPU…",
+        }[studio.browser.state] || "Browser AI · WebGPU",
 );
 watch(route, (value) => {
   if (value !== "studio") studio.leaveStudio();
@@ -159,7 +166,11 @@ onMounted(() => {
             A little more private.
           </p>
           <p class="text-body-small text-medium-emphasis mt-2">
-            Your scripts and recordings stay on your device.
+            {{
+              studio.engineChoice === "server"
+                ? "Server mode sends scripts and recordings to your connected server."
+                : "Your scripts and recordings stay on your device."
+            }}
           </p>
           <p class="eyebrow mt-5 text-medium-emphasis">
             LOCAL AI. PERSONAL VOICE.

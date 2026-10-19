@@ -11,3 +11,8 @@
 !public/**
 !deploy/
 !deploy/nginx.conf
+!deploy/Dockerfile.gpu
+!local/
+!local/server.py
+!local/requirements.txt
+!local/constraints-gpu.txt
