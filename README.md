@@ -227,6 +227,12 @@ Click **Stop**, listen to the preview, then click **Use recording**. Give the vo
 
 Use the sun/moon button in the top bar to switch between light and dark themes. **Settings → Appearance** also offers **Use system theme**. The preference is saved on the device and applied before the page paints.
 
+## Audio player
+
+Generated audio, individual parts, recordings, and reference voices use Bek’s custom player. Play/pause or replay a clip, drag the seek bar, adjust playback speed from 0.75× to 2×, or mute it. The seek bar supports keyboard controls. Starting another preview pauses the previous one in the same page. Players match the app’s light/dark theme and adapt to narrow screens; WAV downloads remain available for generated audio.
+
+![Bek custom audio player with seek bar, time labels, speed, and mute controls](docs/screenshots/custom-audio-player.jpg)
+
 ## Long scripts and audio parts
 
 Choose **Full voice** for one generation request containing the whole script, or **Split voice** for short parts (up to about 200 characters). Split mode prefers paragraphs, sentences, and word boundaries; Khmer character clusters stay together. Both modes work with the browser and Python engines. Full mode can take longer before the first audio is available.

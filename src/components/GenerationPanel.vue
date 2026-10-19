@@ -130,7 +130,7 @@ const elapsed = (part) =>
           <AudioClip
             v-if="part.blob"
             :blob="part.blob"
-            :label="`Play part ${index + 1}`"
+            :label="`Part ${index + 1}`"
             :filename="`bek-part-${String(index + 1).padStart(2, '0')}.wav`"
             class="mt-3"
         /></v-card>
