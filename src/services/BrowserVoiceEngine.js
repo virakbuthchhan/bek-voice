@@ -1,3 +1,5 @@
+import { checkGpu } from "./deviceCheck.js";
+
 /* Sori UI adapter for the browser-local VoxCPM2 WebGPU runtime. */
 export class BrowserVoiceEngine {
   constructor(onChange) {
@@ -15,30 +17,14 @@ export class BrowserVoiceEngine {
     this.onChange?.(this);
   }
   async checkDevice() {
-    if (!window.isSecureContext || !navigator.gpu) {
-      this.supported = false;
-      this.message =
-        "WebGPU is unavailable. Open this app in a current Chrome or Edge browser on a computer.";
-      this.notify();
-      return false;
-    }
-    try {
-      const adapter = await navigator.gpu.requestAdapter();
-      this.supported = !!adapter && adapter.features.has("shader-f16");
-      this.device =
-        adapter?.info?.description || adapter?.info?.vendor || "WebGPU device";
-      if (!this.supported)
-        this.message =
-          "This device does not expose the shader-f16 support required by this model. Try Chrome or Edge, or select the Python engine.";
-      this.notify();
-      return this.supported;
-    } catch (e) {
-      this.supported = false;
-      this.message = "Could not access your GPU: " + e.message;
-      this.notify();
-      return false;
-    }
+    const result = await checkGpu();
+    this.supported = result.status === "pass";
+    this.device = result.device;
+    if (!this.supported) this.message = result.detail;
+    this.notify();
+    return this.supported;
   }
+
   ensureWorker() {
     if (this.worker) return;
     this.worker = new Worker("browser-engine.worker.js", {

@@ -16,6 +16,14 @@ Collapse the sidebar with the top-left menu button to give your script more room
 
 ![Bek studio in dark mode with the sidebar collapsed to an icon menu](docs/screenshots/studio-dark-compact.jpg)
 
+## First-run device check
+
+Bek opens a welcome dialog on your first visit. It checks HTTPS/localhost access, WebGPU and shader-f16 GPU access, Web Workers/WebAssembly, and estimated browser storage. Browser setup needs about 1.9 GB to download and at least 2.2 GB available storage. The check itself downloads no model and requests no microphone access.
+
+If browser AI is unavailable, choose **Use Python engine** for setup instructions, or **Explore studio** to continue. You can reopen the dialog from **Settings → Device compatibility → Run device check**. Passing the check confirms browser capabilities, not available GPU memory or generation speed; loading and running the model is the final test. Storage estimates may be unavailable or change over time.
+
+![Bek welcome dialog showing browser AI compatibility checks and setup choices](docs/screenshots/onboarding.jpg)
+
 ## In-app documentation
 
 Open **Documentation** in the sidebar (Docs on mobile), or click the help icon. The guide includes searchable topics, copyable setup commands, and direct links such as `#docs/python`, `#docs/docker`, and `#docs/troubleshooting`. It is bundled with the app and supports light/dark themes.

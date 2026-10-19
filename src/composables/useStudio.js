@@ -73,7 +73,12 @@ export function useStudio() {
         ? "python"
         : "browser",
     engine: { state: "idle", message: "Checking connection…" },
-    browser: { state: "idle", loaded: 0, total: 1937476083 },
+    browser: {
+      state: "idle",
+      loaded: 0,
+      total: 1937476083,
+      cached: readPreference("sori-browser-cached", "") === "yes",
+    },
     busy: false,
     merging: false,
     stopRequested: false,

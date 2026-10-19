@@ -23,6 +23,7 @@ import {
 } from "./composables/usePreferences.js";
 import { useStudio } from "./composables/useStudio.js";
 import LoadingView from "./components/LoadingView.vue";
+import OnboardingDialog from "./components/OnboardingDialog.vue";
 const lazy = (loader) =>
   defineAsyncComponent({ loader, loadingComponent: LoadingView, delay: 0 });
 const StudioView = lazy(() => import("./components/StudioView.vue"));
@@ -33,6 +34,14 @@ const { theme, preference, toggle } = usePreferences(),
   { route, topic, navigate } = useRoute(),
   { mobile, width } = useDisplay(),
   studio = useStudio();
+const onboardingOpen = ref(readPreference("bek-onboarding-v1", "") !== "done");
+function finishOnboarding(engine) {
+  savePreference("bek-onboarding-v1", "done");
+  if (engine) {
+    studio.setEngine(engine);
+    navigate("settings");
+  }
+}
 const sidebarPreference = ref(readPreference("bek-sidebar-collapsed", "auto"));
 const sidebarCollapsed = computed(() =>
   sidebarPreference.value === "auto"
@@ -163,12 +172,15 @@ onMounted(() => {
         ><v-btn
           v-if="!mobile"
           :icon="sidebarCollapsed ? mdiMenu : mdiMenuOpen"
-          :aria-label="sidebarCollapsed ? 'Expand navigation' : 'Collapse navigation'"
-          :title="sidebarCollapsed ? 'Expand navigation' : 'Collapse navigation'"
+          :aria-label="
+            sidebarCollapsed ? 'Expand navigation' : 'Collapse navigation'
+          "
+          :title="
+            sidebarCollapsed ? 'Expand navigation' : 'Collapse navigation'
+          "
           :aria-expanded="!sidebarCollapsed"
           aria-controls="workspace-navigation"
-          @click="toggleSidebar"
-        /><v-btn
+          @click="toggleSidebar" /><v-btn
           v-if="mobile"
           :icon="mdiWaveform"
           color="primary"
@@ -216,6 +228,7 @@ onMounted(() => {
           v-else-if="route === 'settings'"
           :studio="studio"
           v-model:preference="preference"
+          @onboarding="onboardingOpen = true"
           @navigate="navigate"
         /><DocsView
           v-else-if="route === 'docs'"
@@ -246,7 +259,12 @@ onMounted(() => {
           item.short || item.label
         }}</span></v-btn
       ></v-bottom-navigation
-    ><v-snackbar
+    ><OnboardingDialog
+      v-model="onboardingOpen"
+      :studio="studio"
+      @finish="finishOnboarding"
+    />
+    <v-snackbar
       v-model="studio.snackbar"
       :timeout="6000"
       location="bottom"

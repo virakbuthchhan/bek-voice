@@ -1,7 +1,7 @@
 <script setup>
 import ModelPanel from "./ModelPanel.vue";
 defineProps({ studio: Object, preference: String });
-const emit = defineEmits(["update:preference", "navigate"]);
+const emit = defineEmits(["update:preference", "navigate", "onboarding"]);
 </script>
 <template>
   <div class="page-heading">
@@ -29,6 +29,19 @@ const emit = defineEmits(["update:preference", "navigate"]);
         hide-details
         class="theme-select"
       /></div></v-card
+  ><v-card variant="outlined" class="pa-5 mb-6">
+    <h2 class="text-title-large font-weight-bold">Device compatibility</h2>
+    <p class="text-body-medium text-medium-emphasis mt-2">
+      Check whether this browser can run the local AI model, or review your
+      setup options.
+    </p>
+    <v-btn
+      variant="tonal"
+      color="primary"
+      class="mt-4"
+      @click="emit('onboarding')"
+      >Run device check</v-btn
+    > </v-card
   ><v-row
     ><v-col cols="12" md="7"
       ><v-card variant="outlined" class="pa-5 pa-md-6 mb-5"
